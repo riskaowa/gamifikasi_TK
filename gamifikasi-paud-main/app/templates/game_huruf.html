@@ -9,143 +9,172 @@
     <style>
         body {
             margin: 0;
-            font-family: Arial, sans-serif;
-            background: url("{{ url_for('static', filename='images/bg.png') }}") no-repeat center center / cover;
-            background-attachment: fixed;
+            font-family: 'Inter', Arial, sans-serif;
+            background: linear-gradient(180deg, #dbe7ff 0%, #f0f7ff 55%, #fff 100%);
             color: #1a2b4a;
         }
 
         .game-page {
-            width: min(920px, 95%);
-            margin: 20px auto 28px;
+            width: min(980px, 96%);
+            margin: 28px auto 36px;
+            padding: 0 4px;
         }
 
         .game-title {
             text-align: center;
-            font-size: 2rem;
+            font-size: clamp(2rem, 2.4vw, 2.7rem);
             margin: 0;
-            color: #0d3d77;
+            color: #0e3970;
+            font-weight: 800;
+            letter-spacing: 0.03em;
         }
 
         .game-subtitle {
             text-align: center;
-            margin: 8px 0 16px;
-            color: #32598c;
+            margin: 10px auto 20px;
+            color: #344f7e;
+            font-size: 1rem;
+            max-width: 760px;
+            line-height: 1.5;
+            opacity: 0.88;
         }
 
         .card {
-            background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(5px);
-            -webkit-backdrop-filter: blur(5px);
-            border-radius: 16px;
-            border: 2px solid #b9d8f6;
-            box-shadow: 0 10px 28px rgba(23, 70, 125, 0.2);
-            padding: 18px;
+            background: rgba(255, 255, 255, 0.94);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-radius: 30px;
+            border: 1px solid rgba(45, 119, 255, 0.15);
+            box-shadow: 0 24px 72px rgba(14, 44, 100, 0.18);
+            padding: 28px;
         }
 
         .hud {
             display: grid;
             grid-template-columns: repeat(5, minmax(0, 1fr));
-            gap: 10px;
-            margin-bottom: 14px;
+            gap: 12px;
+            margin-bottom: 20px;
         }
 
         .hud-box {
             background: #f4f9ff;
-            border: 1px solid #cce1f8;
-            border-radius: 10px;
-            padding: 10px;
+            border: 1px solid #dbe9ff;
+            border-radius: 18px;
+            padding: 14px 12px;
             text-align: center;
-            font-weight: 700;
-            color: #12467f;
+            font-weight: 800;
+            color: #1d4d81;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
         }
 
         .letter-stage {
-            border: 2px dashed #8cb3df;
-            border-radius: 14px;
-            background: #fdfefe;
-            padding: 20px 16px;
+            border: 1px solid rgba(29, 86, 171, 0.14);
+            border-radius: 26px;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.95), #f7faff 100%);
+            padding: 32px 24px;
             text-align: center;
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.8);
         }
 
         .question-title {
-            margin: 0 0 8px;
-            font-weight: 700;
-            color: #1f4f8a;
+            margin: 0 0 14px;
+            font-weight: 800;
+            color: #1f4c81;
+            font-size: 1.15rem;
+            letter-spacing: 0.02em;
         }
 
         .big-letter {
-            font-size: 5.2rem;
+            font-size: clamp(4.4rem, 6vw, 6rem);
             line-height: 1;
-            font-weight: 800;
-            color: #0e3b71;
-            margin: 8px 0 2px;
-            min-height: 120px;
+            font-weight: 900;
+            color: #183c74;
+            margin: 0 auto 16px;
+            min-height: 140px;
             display: flex;
             align-items: center;
             justify-content: center;
+            border-radius: 28px;
+            width: min(240px, 55vw);
+            max-width: 100%;
+            background: linear-gradient(180deg, #eef5ff 0%, #ffffff 100%);
+            border: 1px solid #d7e4fb;
+            box-shadow: inset 0 18px 30px rgba(17, 68, 144, 0.06);
+            margin-bottom: 8px;
         }
 
         .question-visual {
-            width: min(260px, 74vw);
+            width: min(280px, 74vw);
             height: auto;
-            border-radius: 12px;
-            border: 2px solid #b8d9ef;
-            background: #f4fbff;
-            padding: 6px;
+            border-radius: 16px;
+            border: 1px solid #d2e1f7;
+            background: #f5faff;
+            padding: 10px;
         }
 
         .choice-btn.choice-visual {
-            background: #f4fbff;
+            background: #f6f9ff;
             color: #1f4f8a;
-            border: 2px solid #b8d9ef;
-            min-height: 112px;
-            padding: 8px;
+            border: 1px solid #c8d8f6;
+            min-height: 128px;
+            padding: 12px;
         }
 
         .choice-option-wrap {
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 6px;
+            gap: 8px;
         }
 
         .choice-option-wrap img {
-            width: 86px;
-            height: 64px;
+            width: 100%;
+            max-width: 100px;
+            height: 74px;
             object-fit: contain;
-            border-radius: 8px;
+            border-radius: 14px;
             background: #fff;
-            border: 1px solid #d3e4f5;
-            padding: 2px;
+            border: 1px solid #dbe7f5;
+            padding: 6px;
         }
 
         .choice-caption {
-            font-size: 0.82rem;
+            font-size: 0.88rem;
             color: #1f4f8a;
         }
 
         .choices {
-            margin-top: 14px;
+            margin-top: 24px;
             display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 10px;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 16px;
         }
 
         .choice-btn {
             border: 0;
-            border-radius: 10px;
-            padding: 12px;
+            border-radius: 18px;
+            padding: 18px 16px;
             font-size: 1.05rem;
             font-weight: 700;
             cursor: pointer;
-            background: #1d66b6;
+            background: linear-gradient(135deg, #1d74d6 0%, #3177ff 100%);
             color: #fff;
-            transition: transform 0.15s ease, opacity 0.15s ease;
+            transition: transform 0.18s ease, box-shadow 0.18s ease, opacity 0.18s ease;
+            min-height: 64px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-transform: uppercase;
+            letter-spacing: 0.01em;
         }
 
         .choice-btn:hover:not(:disabled) {
             transform: translateY(-2px);
+            box-shadow: 0 18px 40px rgba(44, 101, 201, 0.18);
+        }
+
+        .choice-btn:active:not(:disabled) {
+            transform: translateY(0);
         }
 
         .choice-btn:disabled {
@@ -154,10 +183,10 @@
         }
 
         .feedback {
-            margin-top: 14px;
+            margin-top: 18px;
             min-height: 24px;
             text-align: center;
-            font-size: 1.05rem;
+            font-size: 1.06rem;
             font-weight: 700;
         }
 
@@ -170,36 +199,44 @@
         }
 
         .game-actions {
-            margin-top: 16px;
+            margin-top: 26px;
             display: flex;
             justify-content: center;
-            gap: 10px;
+            gap: 12px;
             flex-wrap: wrap;
         }
 
         .btn {
             border: 0;
-            border-radius: 10px;
-            padding: 11px 16px;
+            border-radius: 999px;
+            padding: 14px 24px;
             font-weight: 700;
-            font-size: 0.95rem;
+            font-size: 0.98rem;
             text-decoration: none;
             color: #fff;
             cursor: pointer;
+            background: linear-gradient(135deg, #1d5ab5 0%, #285fb8 100%);
+            box-shadow: 0 14px 30px rgba(31, 88, 162, 0.18);
+            transition: transform 0.18s ease, background 0.18s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+            background: linear-gradient(135deg, #174b8f 0%, #1f5a9f 100%);
         }
 
         .btn-neutral {
-            background: #204a83;
+            background: linear-gradient(135deg, #3b6fae 0%, #285b92 100%);
         }
 
         .btn-neutral:hover {
-            background: #173861;
+            background: linear-gradient(135deg, #254b80 0%, #1f4f82 100%);
         }
 
         .status-text {
-            margin-top: 10px;
+            margin-top: 14px;
             text-align: center;
-            color: #244e83;
+            color: #2c4b78;
             font-weight: 700;
         }
 
@@ -207,7 +244,7 @@
             display: none;
             position: fixed;
             inset: 0;
-            background: rgba(13, 35, 65, 0.7);
+            background: rgba(12, 31, 61, 0.68);
             z-index: 1000;
             align-items: center;
             justify-content: center;
@@ -219,20 +256,20 @@
         }
 
         .game-end-card {
-            width: min(540px, 100%);
-            background: #fff;
-            border-radius: 24px;
-            box-shadow: 0 18px 45px rgba(16, 56, 122, 0.35);
-            border: 2px solid #dfe9ff;
+            width: min(580px, 100%);
+            background: #ffffff;
+            border-radius: 26px;
+            box-shadow: 0 24px 56px rgba(12, 42, 98, 0.24);
+            border: 1px solid rgba(74, 106, 169, 0.16);
             text-align: center;
-            padding: 24px 20px 18px;
+            padding: 26px 22px 22px;
             position: relative;
         }
 
         .game-end-card h2 {
-            margin: 0 0 10px;
+            margin: 0 0 12px;
             font-size: 2rem;
-            color: #0d3d77;
+            color: #0e3c72;
         }
 
         .game-end-badge {
@@ -240,12 +277,12 @@
             align-items: center;
             justify-content: center;
             gap: 12px;
-            margin: 10px auto 18px;
-            padding: 12px 16px;
-            border-radius: 18px;
-            background: #eef6ff;
-            color: #0d3d77;
-            max-width: min(100%, 420px);
+            margin: 12px auto 18px;
+            padding: 14px 18px;
+            border-radius: 20px;
+            background: #eef4ff;
+            color: #0e3c72;
+            max-width: min(100%, 440px);
         }
 
         .game-end-badge-icon {
@@ -253,7 +290,7 @@
             padding: 14px;
             border-radius: 50%;
             background: #fff;
-            border: 2px solid #c7d8f7;
+            border: 2px solid #c9d7f5;
             min-width: 72px;
             min-height: 72px;
             display: grid;
@@ -262,7 +299,7 @@
 
         .game-end-badge-info {
             text-align: left;
-            line-height: 1.2;
+            line-height: 1.25;
         }
 
         .game-end-badge-title {
@@ -272,7 +309,7 @@
 
         .game-end-badge-description {
             font-size: 0.95rem;
-            opacity: 0.88;
+            opacity: 0.9;
         }
 
         .game-end-stars {
@@ -288,9 +325,9 @@
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            background: #f1f5ff;
+            background: #f5f7ff;
             border-radius: 50%;
-            border: 2px solid #c7d8f7;
+            border: 2px solid #d7e2f8;
             color: #f5b631;
             font-size: 1.6rem;
         }
@@ -303,7 +340,7 @@
 
         .game-end-text {
             margin: 0 0 18px;
-            color: #153659;
+            color: #163754;
             font-size: 1.08rem;
             font-weight: 700;
         }
@@ -320,7 +357,7 @@
             min-width: 120px;
         }
 
-        @media (max-width: 768px) {
+        @media (max-width: 860px) {
             .hud {
                 grid-template-columns: repeat(2, minmax(0, 1fr));
             }
@@ -328,9 +365,24 @@
             .choices {
                 grid-template-columns: 1fr;
             }
+        }
 
-            .big-letter {
-                font-size: 4.2rem;
+        @media (max-width: 540px) {
+            .hud {
+                grid-template-columns: 1fr;
+            }
+
+            .card {
+                padding: 22px 18px;
+            }
+
+            .letter-stage {
+                padding: 24px 18px;
+            }
+
+            .choice-btn {
+                padding: 16px 14px;
+                font-size: 1rem;
             }
         }
     </style>
@@ -429,29 +481,17 @@
         const soundCorrect = document.getElementById('soundCorrect');
         const soundWrong = document.getElementById('soundWrong');
 
-        // Stop all other audio that might be playing from other pages
+        // Stop only audio elements that are explicitly allowed to be auto-stopped.
+        // To avoid altering audio unexpectedly, elements must include
+        // `data-autostop="true"` to be affected.
         function stopAllOtherAudio() {
-            // Stop speech synthesis
-            if ('speechSynthesis' in window) {
-                window.speechSynthesis.cancel();
-            }
-            
-            // Stop common audio elements from other pages
-            const audioIds = ['selesaikan-misi-audio', 'petualangan-audio', 'selesai-misi-audio'];
-            audioIds.forEach(id => {
-                const audio = document.getElementById(id);
-                if (audio) {
+            const audios = document.querySelectorAll('audio[data-autostop="true"]');
+            audios.forEach(audio => {
+                try {
                     audio.pause();
                     audio.currentTime = 0;
-                }
-            });
-            
-            // Stop any audio elements that might be playing
-            const allAudio = document.querySelectorAll('audio');
-            allAudio.forEach(audio => {
-                if (audio.id !== 'soundCorrect' && audio.id !== 'soundWrong') {
-                    audio.pause();
-                    audio.currentTime = 0;
+                } catch (err) {
+                    console.warn('[Audio] failed to stop audio:', err);
                 }
             });
         }

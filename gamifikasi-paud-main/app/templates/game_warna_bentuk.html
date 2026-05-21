@@ -46,20 +46,6 @@
             display: grid;
             grid-template-columns: repeat(5, minmax(0, 1fr));
             gap: 10px;
-            margin-bottom: 14px;
-        }
-
-        .hud-box {
-            background: #fff6ea;
-            border: 1px solid #f4c88f;
-            border-radius: 10px;
-            padding: 10px;
-            text-align: center;
-            font-weight: 700;
-            color: #8c4c08;
-        }
-
-        .quiz-stage {
             border: 2px dashed #f2b978;
             border-radius: 14px;
             background: #fffdf9;
@@ -453,29 +439,17 @@
         const soundCorrect = document.getElementById('soundCorrect');
         const soundWrong = document.getElementById('soundWrong');
 
-        // Stop all other audio that might be playing from other pages
+        // Stop only audio elements that are explicitly allowed to be auto-stopped.
+        // To avoid altering audio unexpectedly, elements must include
+        // `data-autostop="true"` to be affected.
         function stopAllOtherAudio() {
-            // Stop speech synthesis
-            if ('speechSynthesis' in window) {
-                window.speechSynthesis.cancel();
-            }
-            
-            // Stop common audio elements from other pages
-            const audioIds = ['selesaikan-misi-audio', 'petualangan-audio', 'selesai-misi-audio'];
-            audioIds.forEach(id => {
-                const audio = document.getElementById(id);
-                if (audio) {
+            const audios = document.querySelectorAll('audio[data-autostop="true"]');
+            audios.forEach(audio => {
+                try {
                     audio.pause();
                     audio.currentTime = 0;
-                }
-            });
-            
-            // Stop any audio elements that might be playing
-            const allAudio = document.querySelectorAll('audio');
-            allAudio.forEach(audio => {
-                if (audio.id !== 'soundCorrect' && audio.id !== 'soundWrong') {
-                    audio.pause();
-                    audio.currentTime = 0;
+                } catch (err) {
+                    console.warn('[Audio] failed to stop audio:', err);
                 }
             });
         }

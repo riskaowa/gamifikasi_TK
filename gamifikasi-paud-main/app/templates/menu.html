@@ -222,7 +222,7 @@
     <!-- Audio pengingat misi dan audio selesai misi -->
     <audio id="login-mission-audio" src="{{ url_for('static', filename='audio/login_reminder.mp3') }}" preload="auto"></audio>
     <audio id="completion-mission-audio" src="{{ url_for('static', filename='audio/mission_complete.mp3') }}" preload="auto"></audio>
-    <audio id="selesaikan-misi-audio" src="{{ url_for('static', filename='audio/selesaikanmisi.wav') }}" preload="auto"></audio>
+    <audio id="selesaikan-misi-audio" data-autostop="true" src="{{ url_for('static', filename='audio/selesaikanmisi.wav') }}" preload="auto"></audio>
 
     <section
         class="menu-page"

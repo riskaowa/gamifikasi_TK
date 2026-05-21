@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='gamification.css') }}">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/bodymovin/5.12.2/lottie.min.js"></script>
 </head>
-<audio id="selesai-misi-audio" src="{{ url_for('static', filename='audio/selesai.mp3') }}" preload="auto"></audio>
+<audio id="selesai-misi-audio" data-autostop="true" src="{{ url_for('static', filename='audio/selesai.mp3') }}" preload="auto"></audio>
 
 <body class="gamified-body">
     <!-- Pop-up animasi tepuk tangan -->

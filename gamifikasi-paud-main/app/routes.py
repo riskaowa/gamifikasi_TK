@@ -1667,12 +1667,13 @@ def build_huruf_question_bank():
         n1 = letters[(index + 1) % len(letters)]
         n2 = letters[(index + 2) % len(letters)]
         p1 = letters[(index - 1) % len(letters)]
+        p2 = letters[(index - 2) % len(letters)]
 
         bank.append({
             'id': f'up-{letter}',
             'display': letter,
-            'prompt': f'Huruf apakah ini: {letter}?',
-            'options': [letter, n1, n2],
+            'prompt': 'Tebak huruf ini.',
+            'options': [letter, n1, n2, p1],
             'answer': letter
         })
 
@@ -1680,8 +1681,8 @@ def build_huruf_question_bank():
         bank.append({
             'id': f'low-{letter}',
             'display': lower,
-            'prompt': f'Huruf apakah ini: {lower}?',
-            'options': [lower, p1.lower(), n1.lower()],
+            'prompt': 'Tebak huruf ini.',
+            'options': [lower, p1.lower(), n1.lower(), p2.lower()],
             'answer': lower
         })
 
@@ -1689,7 +1690,41 @@ def build_huruf_question_bank():
 
 
 def get_daily_huruf_questions():
-    return get_fixed_adventure_questions('huruf', HURUF_LEVEL_RULES)
+    bank = build_huruf_question_bank()
+    total_needed = sum(rule['question_count'] for rule in HURUF_LEVEL_RULES)
+    today_seed = f"huruf-{date.today().isoformat()}"
+    rng = random.Random(today_seed)
+    rng.shuffle(bank)
+
+    selected = bank[:total_needed]
+    questions = []
+    pointer = 0
+
+    for rule in HURUF_LEVEL_RULES:
+        for number_in_level in range(1, rule['question_count'] + 1):
+            item = selected[pointer]
+            pointer += 1
+
+            options = list(item['options'])
+            option_rng = random.Random(f"{today_seed}-{item['id']}")
+            option_rng.shuffle(options)
+
+            questions.append({
+                'question_id': f"letter-{item['id']}",
+                'display': item['display'],
+                'display_value': item['display'],
+                'prompt': item['prompt'],
+                'options': options,
+                'option_images': {},
+                'question_image': None,
+                'answer': item['answer'],
+                'level': rule['level'],
+                'number_in_level': number_in_level,
+                'time_limit': rule['time_limit'],
+                'weight': rule['weight']
+            })
+
+    return questions
 
 
 def get_daily_huruf_questions_public():
@@ -1784,26 +1819,26 @@ def build_warna_bentuk_question_bank():
     bank = []
 
     color_items = [
-        {'name': 'Merah', 'distractors': ['Biru', 'Hijau']},
-        {'name': 'Biru', 'distractors': ['Kuning', 'Merah']},
-        {'name': 'Kuning', 'distractors': ['Ungu', 'Biru']},
-        {'name': 'Hijau', 'distractors': ['Merah', 'Oranye']},
-        {'name': 'Oranye', 'distractors': ['Hijau', 'Biru']},
-        {'name': 'Ungu', 'distractors': ['Kuning', 'Merah']},
-        {'name': 'Putih', 'distractors': ['Hitam', 'Abu-abu']},
-        {'name': 'Hitam', 'distractors': ['Putih', 'Cokelat']},
-        {'name': 'Cokelat', 'distractors': ['Abu-abu', 'Biru']},
-        {'name': 'Abu-abu', 'distractors': ['Putih', 'Merah']},
+        {'name': 'Merah', 'distractors': ['Biru', 'Hijau', 'Kuning']},
+        {'name': 'Biru', 'distractors': ['Kuning', 'Merah', 'Hijau']},
+        {'name': 'Kuning', 'distractors': ['Ungu', 'Biru', 'Oranye']},
+        {'name': 'Hijau', 'distractors': ['Merah', 'Oranye', 'Biru']},
+        {'name': 'Oranye', 'distractors': ['Hijau', 'Biru', 'Kuning']},
+        {'name': 'Ungu', 'distractors': ['Kuning', 'Merah', 'Abu-abu']},
+        {'name': 'Putih', 'distractors': ['Hitam', 'Abu-abu', 'Biru']},
+        {'name': 'Hitam', 'distractors': ['Putih', 'Cokelat', 'Ungu']},
+        {'name': 'Cokelat', 'distractors': ['Abu-abu', 'Biru', 'Hijau']},
+        {'name': 'Abu-abu', 'distractors': ['Putih', 'Merah', 'Hitam']},
     ]
 
     shape_items = [
-        {'name': 'Bola', 'feature': 'tidak punya sudut', 'distractors': ['Kubus', 'Limas']},
-        {'name': 'Kubus', 'feature': '6 sisi sama besar', 'distractors': ['Balok', 'Tabung']},
-        {'name': 'Balok', 'feature': '6 sisi, ada sisi panjang dan lebar', 'distractors': ['Kubus', 'Bola']},
-        {'name': 'Tabung', 'feature': 'alas dan tutup berbentuk lingkaran', 'distractors': ['Kerucut', 'Balok']},
-        {'name': 'Kerucut', 'feature': 'punya satu puncak', 'distractors': ['Tabung', 'Bola']},
-        {'name': 'Limas', 'feature': 'punya puncak dan sisi segitiga', 'distractors': ['Prisma', 'Bola']},
-        {'name': 'Prisma', 'feature': 'memiliki dua sisi alas sejajar', 'distractors': ['Limas', 'Kerucut']},
+        {'name': 'Bola', 'feature': 'tidak punya sudut', 'distractors': ['Kubus', 'Limas', 'Kerucut']},
+        {'name': 'Kubus', 'feature': '6 sisi sama besar', 'distractors': ['Balok', 'Tabung', 'Bola']},
+        {'name': 'Balok', 'feature': '6 sisi, ada sisi panjang dan lebar', 'distractors': ['Kubus', 'Bola', 'Tabung']},
+        {'name': 'Tabung', 'feature': 'alas dan tutup berbentuk lingkaran', 'distractors': ['Kerucut', 'Balok', 'Prisma']},
+        {'name': 'Kerucut', 'feature': 'punya satu puncak', 'distractors': ['Tabung', 'Bola', 'Limas']},
+        {'name': 'Limas', 'feature': 'punya puncak dan sisi segitiga', 'distractors': ['Prisma', 'Bola', 'Kerucut']},
+        {'name': 'Prisma', 'feature': 'memiliki dua sisi alas sejajar', 'distractors': ['Limas', 'Kerucut', 'Tabung']},
     ]
 
     for item in color_items:
