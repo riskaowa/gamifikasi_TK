@@ -10,7 +10,7 @@ db = SQLAlchemy()
 migrate = Migrate()
 login_manager = LoginManager()
 login_manager.login_view = 'main.login'
-socketio = SocketIO()
+socketio = SocketIO(async_mode='eventlet')
 
 
 def _ensure_default_audio_files():
