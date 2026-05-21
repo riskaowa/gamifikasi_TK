@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Peta Petualangan - Gamifikasi PAUD</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='gamification.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='peta_pertualangan.css') }}" />
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Arial', sans-serif;
+            background: url("{{ url_for('static', filename='images/bg.png') }}") no-repeat center center / cover;
+            background-attachment: fixed;
+            color: #2a2a2a;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Tidak ada audio di halaman ini, hanya selesai.mp3 yang boleh digunakan di aplikasi. -->
+
+    <main
+        class="adventure-page"
+        id="adventurePage"
+        data-url-huruf="{{ url_for('main.game_huruf') }}"
+        data-url-angka="{{ url_for('main.game_angka') }}"
+        data-url-warna="{{ url_for('main.game_warna_bentuk') }}"
+        data-access-allowed="{{ '1' if access_allowed else '0' }}"
+        data-access-start="{{ access_start }}"
+        data-access-end="{{ access_end }}"
+        data-access-message="{{ access_message }}"
+        data-access-limited="{{ '1' if access_is_limited else '0' }}"
+    >
+        <!-- ════ ACCESS BLOCK OVERLAY ════ -->
+        <div
+            id="accessBlockOverlay"
+            class="access-block-overlay"
+            {% if access_is_limited and not access_allowed %}style="display:flex"{% endif %}
+            aria-live="polite"
+            role="alert"
+        >
+            <div class="block-card">
+                <div class="block-icon">🔒</div>
+                <h2 class="block-title">Akses Terkunci</h2>
+                <p class="block-message">Peta petualangan hanya bisa diakses sesuai jadwal dari guru</p>
+                <div class="block-schedule">
+                    <span class="schedule-label">Jam Akses</span>
+                    <span class="schedule-time" id="blockScheduleTime">{{ access_start }} – {{ access_end }}</span>
+                </div>
+                <p class="block-hint" id="blockHint">Harap tunggu hingga jam akses dimulai.</p>
+                <a href="{{ url_for('main.menu') }}" class="btn-back" style="margin-top:16px;">⌂ Kembali ke Menu</a>
+            </div>
+        </div>
+
+        <header class="topbar">
+            <div class="brand">
+                <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo" class="brand-logo" />
+                <div class="brand-text">GAMIFIKASI PAUD</div>
+            </div>
+            <div class="top-center">🗺 Peta Pertualangan</div>
+            <div class="top-meta">
+                <span>★ <strong id="starCount">0</strong> Bintang</span>
+            </div>
+        </header>
+
+        <section class="map-shell" id="mapShell">
+            <div style="position:absolute; top:18px; left:50%; transform:translateX(-50%); z-index:4; max-width:min(88vw, 540px); width:100%; text-align:center; padding:10px 14px; border-radius:14px; border:2px solid #bfd7ff; background:rgba(240,246,255,0.95); color:#1f407a; font-weight:700; box-shadow:0 6px 18px rgba(31,64,122,0.12);">
+                Peta Petualangan tersedia pukul {{ access_start }} - {{ access_end }}
+            </div>
+            <svg class="map-line" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+                <line x1="19" y1="38" x2="50" y2="47" stroke="#595959" stroke-width="2.5"></line>
+                <line x1="50" y1="47" x2="82" y2="38" stroke="#595959" stroke-width="2.5"></line>
+            </svg>
+
+            <div class="start-panel">
+                <div class="flag-icon">⚑</div>
+                <button class="btn-start-main" id="btnStartMain" type="button">Mulai</button>
+            </div>
+
+            <article class="game-item item-huruf" data-game-key="huruf">
+                <button class="node-circle" data-game-key="huruf" aria-label="Game Huruf">A</button>
+                <div class="game-card" id="card-huruf" data-game-key="huruf">
+                    <h3 class="game-title">Mengenal Huruf</h3>
+                    <p class="game-status" id="status-huruf">Terbuka</p>
+                    <p class="game-progress" id="progress-huruf">Progress : 0%</p>
+                </div>
+            </article>
+
+            <article class="game-item item-angka" data-game-key="angka">
+                <button class="node-circle" data-game-key="angka" aria-label="Game Angka">B</button>
+                <div class="game-card" id="card-angka" data-game-key="angka">
+                    <h3 class="game-title">Mengenal Angka</h3>
+                    <p class="game-status" id="status-angka">Terkunci</p>
+                    <p class="game-progress" id="progress-angka">Progress : 0%</p>
+                </div>
+            </article>
+
+            <article class="game-item item-warna" data-game-key="warna">
+                <button class="node-circle" data-game-key="warna" aria-label="Game Warna Bentuk">C</button>
+                <div class="game-card" id="card-warna" data-game-key="warna">
+                    <h3 class="game-title">Mengenal Warna<br />dan<br />Bentuk Bangun Ruang</h3>
+                    <p class="game-status" id="status-warna">Terkunci</p>
+                    <p class="game-progress" id="progress-warna">Progress : 0%</p>
+                </div>
+            </article>
+        </section>
+
+        <section class="bottom-panel">
+            <div class="helper" id="petaAccessMessage">{{ access_message if access_is_limited and not access_allowed else 'Peta Petualangan tersedia pukul ' ~ access_start ~ ' - ' ~ access_end ~ '. Klik ikon level untuk memulai permainan setelah level sebelumnya selesai.' }}</div>
+            <div class="overall-progress">Progress Keseluruhan: <strong id="overallProgress">0%</strong></div>
+            <a href="{{ url_for('main.menu') }}" class="btn-back">⌂ Kembali ke Menu Utama</a>
+        </section>
+
+        <!-- ════ GAME ACCESS INFO MODAL ════ -->
+        <div
+            id="game-access-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="modal-game-title"
+            style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.52); z-index:300; align-items:center; justify-content:center; padding:16px;"
+        >
+            <div style="background:#fff; border-radius:18px; padding:28px 24px 22px; max-width:360px; width:100%; text-align:center; box-shadow:0 10px 40px rgba(0,0,0,0.25);">
+                <div style="font-size:2rem; margin-bottom:6px;">🗺️</div>
+                <h2 id="modal-game-title" style="margin:0 0 4px; font-size:1.18rem; color:#1f2a44; font-weight:700;"></h2>
+                <div style="margin:12px 0 8px; padding:10px 14px; background:#eef2ff; border-radius:10px;">
+                    <p style="margin:0 0 3px; font-size:0.82rem; color:#5f6b7a;">Jam Akses yang Diizinkan</p>
+                    <p id="modal-access-time" style="margin:0; font-weight:700; font-size:1.15rem; color:#1f4090;">08:00 – 22:00</p>
+                </div>
+                <p id="modal-locked-msg" style="display:none; color:#c62828; font-weight:600; margin:8px 0 4px; font-size:0.95rem;"></p>
+                <p id="modal-played-msg" style="display:none; color:#e65100; font-weight:600; margin:8px 0 4px; font-size:0.95rem;">Game ini sudah dimainkan hari ini. Coba lagi besok!</p>
+                <div style="display:flex; gap:10px; justify-content:center; margin-top:18px;">
+                    <button
+                        id="modal-play-btn"
+                        type="button"
+                        style="background:#4caf50; color:#fff; border:none; padding:10px 26px; border-radius:10px; font-weight:700; font-size:1rem; cursor:pointer;"
+                    >▶ Mulai</button>
+                    <button
+                        type="button"
+                        id="modal-close-btn"
+                        style="background:#e0e0e0; color:#333; border:none; padding:10px 20px; border-radius:10px; font-weight:700; font-size:1rem; cursor:pointer;"
+                    >Tutup</button>
+                </div>
+            </div>
+        </div>
+
+        <section class="mascot" id="mascotWrap" aria-live="polite">
+            <div
+                id="mascotAnimation"
+                class="mascot-animation"
+                data-animation-url="{{ url_for('static', filename='animations/mascot.json') }}"
+                aria-label="Maskot Animasi"
+            ></div>
+            <img src="{{ url_for('static', filename='animations/mascot.json') }}" alt="Maskot" class="mascot-image" id="mascotFallback" />
+            <div class="speech" id="mascotSpeech">Ayo silakan bermain</div>
+            <div class="mascot-controls">
+                <button type="button" id="replayVoice" class="voice-btn" title="Ulangi suara">Ulangi</button>
+                <button type="button" id="toggleVoice" class="voice-btn" title="Matikan suara">Suara ON</button>
+            </div>
+        </section>
+    </main>
+
+    <audio id="petualangan-audio" src="{{ url_for('static', filename='audio/bermain.mp3') }}" preload="auto"></audio>
+    <script src="{{ url_for('static', filename='audio-helper.js') }}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const audioEl = document.getElementById('petualangan-audio');
+            if (!audioEl) {
+                return;
+            }
+
+            // Stop any existing audio on the page before playing the adventure audio.
+            document.querySelectorAll('audio').forEach((audio) => {
+                if (audio !== audioEl) {
+                    try {
+                        audio.pause();
+                        audio.currentTime = 0;
+                        audio.src = '';
+                    } catch (err) {
+                        console.warn('[Audio] gagal menghentikan audio lama:', err);
+                    }
+                }
+            });
+
+            // Play once per day using AudioHelper
+            if (window.AudioHelper) {
+                AudioHelper.playOncePerDay(audioEl, 'petaAudioPlayedToday');
+            } else {
+                console.warn('[Audio] AudioHelper not loaded, cannot play audio');
+            }
+        });
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bodymovin/5.12.2/lottie.min.js" defer></script>
+    <script src="{{ url_for('static', filename='peta_pertualangan.js') }}" defer></script>
+</body>
+
+</html>

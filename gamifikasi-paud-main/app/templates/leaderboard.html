@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Papan Peringkat - Gamifikasi Paud</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: url("{{ url_for('static', filename='images/bg.png') }}") no-repeat center center / cover;
+            background-attachment: fixed;
+            font-family: Arial, sans-serif;
+            color: #202020;
+            display: flex;
+            justify-content: center;
+            padding: 6px;
+        }
+
+        .frame {
+            width: min(100%, 980px);
+            background: rgba(255, 255, 255, 0.82);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            border: 2px solid rgba(150, 150, 150, 0.5);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
+        }
+
+        .topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 14px 18px;
+            border-bottom: 2px solid rgba(93, 93, 93, 0.3);
+            background: rgba(255, 255, 255, 0.88);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .brand-mark {
+            width: 48px;
+            height: 48px;
+            border: 2px solid #5d5d5d;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            background: #ffffff;
+        }
+
+        .brand-title {
+            font-size: 2rem;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .toolbar {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .profile-icon {
+            width: 40px;
+            height: 40px;
+            border: 2px solid #1f1f1f;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            background: #ffffff;
+        }
+
+        .logout-btn,
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 9px 18px;
+            border: 2px solid #6a6a6a;
+            border-radius: 10px;
+            background: #f7f7f7;
+            color: #202020;
+            text-decoration: none;
+            font-weight: 700;
+        }
+
+        .content {
+            padding: 24px 26px 30px;
+        }
+
+        .panel {
+            border: 2px solid rgba(139, 139, 139, 0.4);
+            border-radius: 12px;
+            padding: 20px 18px;
+            background: rgba(255, 255, 255, 0.78);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            box-shadow: 0 4px 18px rgba(0, 0, 0, 0.1);
+        }
+
+        .panel-title {
+            margin: 0;
+            text-align: center;
+            font-size: 2rem;
+            font-weight: 700;
+        }
+
+        .panel-subtitle {
+            margin: 14px 0 0;
+            text-align: center;
+            font-size: 1.15rem;
+        }
+
+        .top-five {
+            display: grid;
+            grid-template-columns: repeat(6, minmax(0, 1fr));
+            gap: 18px 16px;
+            margin-top: 22px;
+            align-items: start;
+        }
+
+        .rank-card {
+            min-height: 86px;
+            border: 2px solid rgba(128, 128, 128, 0.35);
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(3px);
+            -webkit-backdrop-filter: blur(3px);
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.09);
+            padding: 12px 10px 10px;
+            text-align: center;
+            position: relative;
+        }
+
+        .rank-card.rank-1 {
+            grid-column: 1 / span 2;
+        }
+
+        .rank-card.rank-2 {
+            grid-column: 3 / span 2;
+        }
+
+        .rank-card.rank-3 {
+            grid-column: 5 / span 2;
+        }
+
+        .rank-card.rank-4 {
+            grid-column: 2 / span 2;
+        }
+
+        .rank-card.rank-5 {
+            grid-column: 4 / span 2;
+        }
+
+        .rank-pill {
+            position: absolute;
+            top: -16px;
+            left: -12px;
+            width: 38px;
+            height: 38px;
+            border: 2px solid #808080;
+            border-radius: 50%;
+            background: #fff7d8;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+        }
+
+        .rank-name {
+            margin: 4px 0 6px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .rank-score {
+            font-size: 1.05rem;
+            font-weight: 700;
+        }
+
+        .rank-meta {
+            margin-top: 5px;
+            font-size: 0.88rem;
+        }
+
+        .position-box {
+            margin-top: 24px;
+            border: 2px solid rgba(139, 139, 139, 0.4);
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.78);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            box-shadow: 0 4px 18px rgba(0, 0, 0, 0.1);
+            padding: 18px 22px;
+            text-align: center;
+        }
+
+        .position-box p {
+            margin: 2px 0;
+            font-size: 1.05rem;
+        }
+
+        .position-highlight {
+            font-weight: 700;
+        }
+
+        .motivation {
+            margin-top: 8px;
+            font-weight: 700;
+        }
+
+        .actions {
+            margin-top: 18px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .empty-state {
+            margin-top: 14px;
+            text-align: center;
+            font-size: 0.95rem;
+            color: #5a5a5a;
+        }
+
+        @media (max-width: 768px) {
+            .topbar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .brand-title {
+                font-size: 1.6rem;
+            }
+
+            .toolbar {
+                justify-content: space-between;
+            }
+
+            .content {
+                padding: 18px 14px 24px;
+            }
+
+            .panel-title {
+                font-size: 1.55rem;
+            }
+
+            .panel-subtitle {
+                font-size: 1rem;
+            }
+
+            .top-five {
+                grid-template-columns: 1fr;
+            }
+
+            .rank-card.rank-1,
+            .rank-card.rank-2,
+            .rank-card.rank-3,
+            .rank-card.rank-4,
+            .rank-card.rank-5 {
+                grid-column: auto;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <main class="frame">
+        <header class="topbar">
+            <div class="brand">
+                <div class="brand-mark">🏫</div>
+                <h1 class="brand-title">Gamifikasi Paud</h1>
+            </div>
+
+            <div class="toolbar">
+                <div class="profile-icon">👤</div>
+                <a href="{{ url_for('main.logout') }}" class="logout-btn">Keluar</a>
+            </div>
+        </header>
+
+        <section class="content">
+            <div class="panel">
+                <h2 class="panel-title">🏆 Papan Peringkat 🎉</h2>
+                <p class="panel-subtitle">Lihat peringkatmu di antara teman-teman! 🚀</p>
+
+                <div class="top-five">
+                    {% for hero in leaderboard_top5 %}
+                    <article class="rank-card rank-{{ hero.rank }}">
+                        <div class="rank-pill">#{{ hero.rank }}</div>
+                        <div class="rank-name">{{ hero.username or 'Belum ada' }}</div>
+                        <div class="rank-score">Total Skor {{ hero.total_score or 0 }}</div>
+                        <div class="rank-meta">{{ hero.certificate }}</div>
+                    </article>
+                    {% endfor %}
+                </div>
+
+                {% if leaderboard_top5|selectattr('user_id')|list|length == 0 %}
+                <p class="empty-state">Belum ada murid yang menyelesaikan game. Skor akan muncul otomatis setelah permainan selesai.</p>
+                {% endif %}
+            </div>
+
+            <div class="position-box">
+                <p>Posisimu: <span class="position-highlight">#{{ current_user_entry.rank }}</span></p>
+                <p>Username: <span class="position-highlight">{{ current_user_entry.username or 'Belum ada' }}</span></p>
+                <p>Total Skor: <span class="position-highlight">{{ current_user_entry.total_score or 0 }}</span></p>
+                <p>Sertifikat: <span class="position-highlight">{{ current_user_entry.certificate }}</span></p>
+                <p>Game Selesai: <span class="position-highlight">{{ current_user_entry.games_completed or 0 }}</span></p>
+                <p class="motivation">Terus belajar dan naikkan peringkatmu!</p>
+            </div>
+
+            <div class="actions">
+                <a href="{{ url_for('main.menu') }}" class="back-btn">⌂ Kembali Ke Halaman Utama</a>
+            </div>
+        </section>
+    </main>
+</body>
+
+</html>

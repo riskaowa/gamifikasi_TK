@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Progres Harian - Gamifikasi PAUD</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='gamification.css') }}">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body.progres-body {
+            background: url("{{ url_for('static', filename='images/bg.png') }}") no-repeat center center / cover;
+            background-attachment: fixed;
+            min-height: 100vh;
+            padding: 20px;
+            font-family: 'Bubblegum Sans', cursive;
+        }
+
+        .progres-container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Header */
+        .progres-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 20px;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .logo-circle {
+            width: 100px;
+            height: 100px;
+            background: #ffffff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            border: 3px solid #d8e2ff;
+            box-shadow: 0 6px 16px rgba(102, 126, 234, 0.2);
+        }
+
+        .logo-circle img {
+            width: 75%;
+            height: 75%;
+            object-fit: contain;
+        }
+
+        .header-title h1 {
+            font-family: 'Fredoka One', cursive;
+            color: #2c3e50;
+            font-size: 1.8rem;
+            margin: 0;
+        }
+
+        .header-title p {
+            color: #7f8c8d;
+            margin: 5px 0 0 0;
+            font-size: 0.9rem;
+        }
+
+        .logout-btn {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 15px;
+            cursor: pointer;
+            font-family: 'Bubblegum Sans', cursive;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .logout-btn:hover {
+            background: #c0392b;
+            transform: scale(1.05);
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:nth-child(even) {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .stat-card:nth-child(3) {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        .stat-card:nth-child(4) {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .stat-value {
+            font-family: 'Fredoka One', cursive;
+            font-size: 2.5rem;
+            margin: 10px 0;
+            white-space: normal;
+            overflow-wrap: anywhere;
+            word-break: break-word;
+            display: inline-block;
+            max-width: 100%;
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0.9;
+        }
+
+        /* Section Title */
+        .section-title {
+            font-family: 'Fredoka One', cursive;
+            color: #2c3e50;
+            font-size: 1.3rem;
+            margin: 25px 0 15px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-icon {
+            font-size: 1.5rem;
+        }
+
+        /* Progress Harian */
+        .progress-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+        }
+
+        .progress-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            padding: 15px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+        }
+
+        .progress-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .progress-item-label {
+            flex: 1;
+            color: #2c3e50;
+            font-weight: bold;
+        }
+
+        .progress-bar-container {
+            flex: 2;
+            background: #e0e0e0;
+            height: 20px;
+            border-radius: 10px;
+            margin: 0 15px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.75rem;
+            font-weight: bold;
+            transition: width 0.5s ease;
+            min-width: 30px;
+        }
+
+        .progress-percentage {
+            color: #667eea;
+            font-weight: bold;
+            min-width: 40px;
+            text-align: right;
+        }
+
+        /* Achievement Section */
+        .achievement-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .achievement-card {
+            background: white;
+            border: 3px solid #ddd;
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .achievement-card:hover {
+            border-color: #667eea;
+            transform: scale(1.05);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .achievement-card.unlocked {
+            background: linear-gradient(135deg, #ffd89b 0%, #19547b 100%);
+            border-color: #ffd89b;
+            color: white;
+        }
+
+        .achievement-icon {
+            font-size: 3rem;
+            margin-bottom: 10px;
+        }
+
+        .achievement-name {
+            font-weight: bold;
+            font-size: 0.9rem;
+            color: #2c3e50;
+        }
+
+        .achievement-card.unlocked .achievement-name {
+            color: white;
+        }
+
+        .achievement-value {
+            font-family: 'Fredoka One', cursive;
+            font-size: 1.5rem;
+            margin: 10px 0;
+        }
+
+        .lock-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #e74c3c;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        /* Certificate Section */
+        .certificate-section {
+            background: linear-gradient(135deg, #ffd89b 0%, #19547b 100%);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+            color: white;
+        }
+
+        .certificate-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .certificate-item {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            border: 2px solid white;
+            transition: all 0.3s ease;
+        }
+
+        .certificate-item:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.05);
+        }
+
+        .certificate-icon {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .certificate-name {
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        .no-certificate {
+            text-align: center;
+            padding: 20px;
+            opacity: 0.8;
+        }
+
+        /* Certificate Modal */
+        .certificate-modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .certificate-modal.active {
+            display: flex;
+        }
+
+        .certificate-document {
+            background: white;
+            width: min(800px, 100%);
+            aspect-ratio: 8.5 / 11;
+            border-radius: 8px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 60px 40px;
+            position: relative;
+            overflow: hidden;
+            font-family: 'Times New Roman', serif;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .certificate-document::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border: 3px solid #d4af37;
+            border-radius: 8px;
+            pointer-events: none;
+        }
+
+        .certificate-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .certificate-school-name {
+            font-size: 1rem;
+            color: #333;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .certificate-school-info {
+            font-size: 0.8rem;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .certificate-title {
+            font-size: 2rem;
+            color: #8b4513;
+            font-weight: bold;
+            margin: 20px 0;
+            letter-spacing: 2px;
+        }
+
+        .certificate-subtitle {
+            font-size: 0.95rem;
+            color: #666;
+            font-style: italic;
+            margin-bottom: 30px;
+        }
+
+        .certificate-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            text-align: center;
+            gap: 20px;
+        }
+
+        .certificate-line {
+            font-size: 0.9rem;
+            color: #333;
+        }
+
+        .certificate-line-label {
+            font-size: 0.8rem;
+            color: #666;
+            margin-top: 4px;
+        }
+
+        .student-name {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #8b4513;
+            text-decoration: underline;
+        }
+
+        .certificate-signatures {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            margin-top: 30px;
+            padding-top: 20px;
+        }
+
+        .signature-block {
+            text-align: center;
+        }
+
+        .signature-line {
+            border-top: 2px solid #333;
+            height: 60px;
+            margin-bottom: 5px;
+        }
+
+        .signature-label {
+            font-size: 0.8rem;
+            color: #333;
+        }
+
+        .certificate-close-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: #e74c3c;
+            color: white;
+            border: none;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            z-index: 2001;
+        }
+
+        .certificate-close-btn:hover {
+            background: #c0392b;
+            transform: scale(1.1);
+        }
+
+        .certificate-item {
+            cursor: pointer;
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 25px;
+            flex-wrap: wrap;
+        }
+
+        .action-btn {
+            flex: 1;
+            min-width: 150px;
+            padding: 15px 20px;
+            border: none;
+            border-radius: 15px;
+            font-family: 'Fredoka One', cursive;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .action-btn.home {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .action-btn.home:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .action-btn.back {
+            background: #95a5a6;
+            color: white;
+        }
+
+        .action-btn.back:hover {
+            background: #7f8c8d;
+            transform: translateY(-3px);
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #7f8c8d;
+        }
+
+        .empty-state-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+        }
+
+        @media (max-width: 768px) {
+            .progres-container {
+                padding: 20px;
+            }
+
+            .progres-header {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .achievement-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+
+            .action-btn {
+                min-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body class="progres-body">
+    <div class="progres-container">
+        <!-- Header -->
+        <div class="progres-header">
+            <div class="header-left">
+                <div class="logo-circle">
+                    <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo Gamifikasi PAUD" />
+                </div>
+                <div class="header-title">
+                    <h1>Gamifikasi PAUD</h1>
+                    <p>{{ current_user.name }}</p>
+                </div>
+            </div>
+            <a href="{{ url_for('main.logout') }}" class="logout-btn">🚪 Keluar</a>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="section-icon">⭐</div>
+                <div class="stat-label">Total Bintang</div>
+                <div class="stat-value">{{ total_stars }}</div>
+            </div>
+            <div class="stat-card">
+                <div class="section-icon">🎖️</div>
+                <div class="stat-label">Badge Harian</div>
+                <div class="stat-value">{{ badge_display }}</div>
+                <div style="font-size:0.85rem; opacity:0.85; margin-top:4px;">{{ badge_points }} poin</div>
+            </div>
+            <div class="stat-card">
+                <div class="section-icon">🎯</div>
+                <div class="stat-label">Game Terselesaikan</div>
+                <div class="stat-value">{{ games_completed }}</div>
+            </div>
+            <div class="stat-card">
+                <div class="section-icon">🏆</div>
+                <div class="stat-label">Sertifikat</div>
+                <div class="stat-value">{{ certificates_count }}</div>
+            </div>
+        </div>
+
+        <!-- Progress Harian Section -->
+        <div class="section-title">
+            <span class="section-icon">📊</span>
+            Progres HarianMu
+        </div>
+        <div class="progress-section">
+            {% if daily_progress|length > 0 %}
+                {% for progress in daily_progress %}
+                <div class="progress-item">
+                    <div class="progress-item-label">{{ progress.materi_name }}</div>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar" data-progress="{{ progress.percentage }}"></div>
+                    </div>
+                    <div class="progress-percentage">{{ progress.percentage }}%</div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="empty-state">
+                    <div class="empty-state-icon">📚</div>
+                    <p>Belum ada progress harian. Mulai belajar sekarang!</p>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Achievement Section -->
+        <div class="section-title">
+            <span class="section-icon">🎖️</span>
+            PencapaianMu
+        </div>
+        <div class="achievement-grid">
+            <div class="achievement-card {% if total_stars > 0 %}unlocked{% endif %}">
+                <div class="achievement-icon">⭐</div>
+                <div class="achievement-name">Pengumpulan Bintang</div>
+                <div class="achievement-value">{{ total_stars }}</div>
+                {% if total_stars == 0 %}<div class="lock-badge">🔒</div>{% endif %}
+            </div>
+            <div class="achievement-card {% if user_rank %}unlocked{% endif %}">
+                <div class="achievement-icon">🏁</div>
+                <div class="achievement-name">Juara Game</div>
+                <div class="achievement-value">#{{ user_rank }}</div>
+                {% if user_rank == 0 %}<div class="lock-badge">🔒</div>{% endif %}
+            </div>
+            <div class="achievement-card {% if total_questions > 0 %}unlocked{% endif %}">
+                <div class="achievement-icon">✅</div>
+                <div class="achievement-name">Soal Dikerjakan</div>
+                <div class="achievement-value">{{ total_questions }}</div>
+                {% if total_questions == 0 %}<div class="lock-badge">🔒</div>{% endif %}
+            </div>
+            <div class="achievement-card {% if login_consistency > 0 %}unlocked{% endif %}">
+                <div class="achievement-icon">📅</div>
+                <div class="achievement-name">Konsistensi Login</div>
+                <div class="achievement-value">{{ login_consistency }} hari</div>
+                {% if login_consistency == 0 %}<div class="lock-badge">🔒</div>{% endif %}
+            </div>
+        </div>
+
+        <!-- Certificate Section -->
+        <div class="section-title">
+            <span class="section-icon">📜</span>
+            Sertifikat PrestasiKu
+        </div>
+        <div class="certificate-section">
+            {% if user_certificate %}
+                <p style="margin: 0 0 10px 0;">🎖️ Sertifikat Peringkat: <strong>{{ user_certificate }}</strong></p>
+            {% endif %}
+            {% if certificates|length > 0 %}
+                <p style="margin: 10px 0;">🎉 Selamat! Kamu telah mencapai {{ certificates|length }} sertifikat prestasi</p>
+                <div class="certificate-list">
+                    {% for cert in certificates %}
+                    <div class="certificate-item" onclick="openCertificate('{{ cert.badge_name }}')">
+                        <div class="certificate-icon">🏅</div>
+                        <div class="certificate-name">{{ cert.badge_name }}</div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="no-certificate">
+                    <p>📋 Belum ada sertifikat prestasi. Selesaikan lebih banyak tantangan untuk mendapatkan sertifikat!</p>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Certificate Modal -->
+        <div id="certificateModal" class="certificate-modal">
+            <div class="certificate-document">
+                <button class="certificate-close-btn" onclick="closeCertificate()">&times;</button>
+                
+                <div class="certificate-header">
+                    <div class="certificate-school-name">KEMENTERIAN PENDIDIKAN DAN KEBUDAYAAN</div>
+                    <div class="certificate-school-name">PEMERINTAH KOTA / KABUPATEN</div>
+                    <div class="certificate-school-info">TAMAN KANAK-KANAK (TK)</div>
+                </div>
+
+                <div style="text-align: center;">
+                    <div class="certificate-title">SERTIFIKAT</div>
+                    <div class="certificate-subtitle">Diberikan kepada:</div>
+                </div>
+
+                <div class="certificate-content">
+                    <div class="certificate-line">
+                        <div class="student-name" id="certStudentName">{{ current_user.name }}</div>
+                        <div class="certificate-line-label">Nama Peserta Didik</div>
+                    </div>
+
+                    <div class="certificate-line">
+                        <div style="font-size: 0.95rem; color: #333; margin-bottom: 5px;">
+                            Atas pencapaian dan prestasi yang luar biasa dalam program pembelajaran
+                        </div>
+                        <div id="certTitle" style="font-size: 1rem; font-weight: bold; color: #8b4513; margin: 10px 0;"></div>
+                    </div>
+
+                    <div class="certificate-line">
+                        <div style="font-size: 0.9rem; color: #666;">
+                            Kelas: <span style="font-weight: bold; color: #333;">{{ current_user.kelas or 'N/A' }}</span>
+                        </div>
+                    </div>
+
+                    <div class="certificate-signatures">
+                        <div class="signature-block">
+                            <div class="signature-line"></div>
+                            <div class="signature-label">Kepala Sekolah</div>
+                        </div>
+                        <div class="signature-block">
+                            <div class="signature-line"></div>
+                            <div class="signature-label">Wali Kelas</div>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 20px; font-size: 0.85rem; color: #666;">
+                        <div id="certDate"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            <a href="{{ url_for('main.misi_harian') }}" class="action-btn home">🎯 Buka Misi Harian</a>
+            <a href="{{ url_for('main.user_dashboard') }}" class="action-btn home">📊 Kembali ke Dashboard</a>
+            <a href="{{ url_for('main.menu') }}" class="action-btn back">🏠 Kembali Ke Halaman Utama</a>
+        </div>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.progress-bar').forEach(function(el) {
+                var percent = Number(el.dataset.progress) || 0;
+                el.style.width = percent + '%';
+                if (percent > 10) {
+                    el.textContent = percent + '%';
+                }
+            });
+        });
+
+        function openCertificate(certName) {
+            const modal = document.getElementById('certificateModal');
+            const certTitle = document.getElementById('certTitle');
+            const certDate = document.getElementById('certDate');
+            
+            certTitle.textContent = certName;
+            
+            const today = new Date();
+            const options = { year: 'numeric', month: 'long', day: 'numeric' };
+            const dateStr = today.toLocaleDateString('id-ID', options);
+            certDate.textContent = 'Tanggal: ' + dateStr;
+            
+            modal.classList.add('active');
+        }
+
+        function closeCertificate() {
+            const modal = document.getElementById('certificateModal');
+            modal.classList.remove('active');
+        }
+
+        // Close modal when clicking outside the certificate
+        document.getElementById('certificateModal')?.addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeCertificate();
+            }
+        });
+    </script>
+</body>
+</html>

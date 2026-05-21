@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Menu Utama - Gamifikasi PAUD</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='gamification.css') }}">
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bodymovin/5.12.2/lottie.min.js"></script>
+    <script src="{{ url_for('static', filename='audio-helper.js') }}"></script>
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Arial', sans-serif;
+            background: url("{{ url_for('static', filename='images/bg.png') }}") no-repeat center center / cover;
+            background-attachment: fixed;
+            color: #2a2a2a;
+        }
+
+        .menu-page {
+            display: flex;
+            min-height: 100vh;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            gap: 25px;
+            flex-wrap: wrap;
+            position: relative;
+        }
+
+        .menu-content {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            border-radius: 18px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+            padding: 24px;
+            width: min(960px, 100%);
+        }
+
+        .menu-header {
+            text-align: center;
+            margin-bottom: 18px;
+        }
+
+        .menu-header h1 {
+            margin: 0;
+            font-size: 2.1rem;
+        }
+
+        .menu-header p {
+            margin: 6px 0;
+            font-size: 1.05rem;
+        }
+
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 14px;
+            margin-top: 16px;
+        }
+
+        .menu-card {
+            min-height: 124px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, #ffffff, #fde3ff);
+            border: 2px solid #c5c5d1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            text-align: center;
+            font-weight: 700;
+            color: #1f2a44;
+            box-shadow: 0 6px 14px rgba(0, 0, 0, 0.12);
+            cursor: pointer;
+            transition: transform 0.17s ease, filter 0.2s ease, background-color 0.2s ease;
+            position: relative;
+        }
+
+        .menu-card:hover {
+            transform: translateY(-3px);
+            filter: brightness(1.04);
+        }
+
+        .menu-card.locked {
+            background: #dde0e3;
+            color: #667082;
+            border-color: #9aa2aa;
+            cursor: not-allowed;
+            filter: grayscale(0.45);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+            pointer-events: none;
+        }
+
+        .menu-card.locked::after {
+            content: '\1F512';
+            font-size: 1.5rem;
+            position: absolute;
+            right: 10px;
+            top: 10px;
+            color: #7f8a97;
+        }
+
+        .menu-card span {
+            font-size: 0.94rem;
+            margin-top: 10px;
+            color: inherit;
+        }
+
+        .menu-card.enabled {
+            pointer-events: auto;
+        }
+
+        .mascot-fixed {
+            position: fixed;
+            right: 18px;
+            bottom: 14px;
+            z-index: 40;
+            width: 210px;
+            pointer-events: none;
+        }
+
+        .mascot-anim-wrap {
+            width: 100%;
+            min-height: 210px;
+            cursor: pointer;
+            pointer-events: auto;
+            filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.25));
+        }
+
+        .mascot-fallback {
+            width: 100%;
+            display: none;
+            pointer-events: auto;
+        }
+
+        .mascot-fixed.fallback .mascot-fallback {
+            display: block;
+        }
+
+        .mascot-fixed.fallback .mascot-anim-wrap {
+            display: none;
+        }
+
+        .mascot-bubble {
+            margin-top: 6px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 10px;
+            border: 1.5px solid #cdd7e7;
+            font-size: 0.88rem;
+            padding: 8px 10px;
+            color: #273245;
+            font-weight: 700;
+            text-align: center;
+        }
+
+        @keyframes mascot-bounce {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            20% { transform: translateY(-5px) rotate(2deg); }
+            40% { transform: translateY(2px) rotate(-3deg); }
+            60% { transform: translateY(-6px) rotate(3deg); }
+            80% { transform: translateY(1px) rotate(-2deg); }
+        }
+
+        @media (max-width: 768px) {
+            .mascot-fixed {
+                width: 145px;
+                right: 8px;
+                bottom: 8px;
+            }
+
+            .mascot-anim-wrap {
+                min-height: 145px;
+            }
+
+            .mascot-bubble {
+                font-size: 0.72rem;
+                padding: 6px 8px;
+            }
+        }
+
+        .status-badge {
+            border-radius: 999px;
+            background: #5c6ef8;
+            color: #ffffff;
+            padding: 6px 12px;
+            display: inline-block;
+            font-size: 0.83rem;
+            margin-top: 6px;
+        }
+
+        .hint {
+            margin-top: 11px; font-size: .9rem; color: #5f6672;
+        }
+
+        .menu-status-message {
+            margin: 16px auto 0;
+            padding: 14px 18px;
+            border-radius: 14px;
+            background: rgba(76, 175, 80, 0.12);
+            border: 1px solid rgba(76, 175, 80, 0.3);
+            color: #1f4f28;
+            font-weight: 700;
+            display: inline-flex;
+            flex-direction: column;
+            gap: 6px;
+            text-align: center;
+            max-width: 700px;
+        }
+
+        .menu-status-message span {
+            font-weight: 500;
+            color: #2a5138;
+            font-size: 0.94rem;
+        }
+
+    </style>
+</head>
+
+<body>
+    <!-- Audio pengingat misi dan audio selesai misi -->
+    <audio id="login-mission-audio" src="{{ url_for('static', filename='audio/login_reminder.mp3') }}" preload="auto"></audio>
+    <audio id="completion-mission-audio" src="{{ url_for('static', filename='audio/mission_complete.mp3') }}" preload="auto"></audio>
+    <audio id="selesaikan-misi-audio" src="{{ url_for('static', filename='audio/selesaikanmisi.wav') }}" preload="auto"></audio>
+
+    <section
+        class="menu-page"
+        data-status-misi="{{ status_misi }}"
+        data-user-id="{{ current_user.id if current_user else '' }}"
+        data-play-login-audio="{{ '1' if play_login_mission_audio else '0' }}"
+        data-play-completion-audio="{{ '1' if play_completion_audio else '0' }}"
+        data-today="{{ today_iso }}"
+    >
+        <article class="menu-content">
+            <header class="menu-header">
+                <h1>Selamat Datang, {{ current_user.name }}!</h1>
+                <p>⭐ Ayo kumpulkan bintang sebanyak-banyaknya! Simpan misi harian dulu ya.</p>
+                {% if status_misi == 'selesai' %}
+                    <div class="menu-status-message">
+                        <strong>Misi Harian hari ini sudah selesai.</strong>
+                        <span>Menu lain sekarang dapat diakses. Peta Petualangan akan tersedia sesuai jam akses guru.</span>
+                    </div>
+                {% endif %}
+            </header>
+
+            <div class="menu-grid">
+                <div class="menu-card" id="card-materi" data-target="materi" data-url="/materi">
+                    Materi
+                    <span>Pelajaran seru</span>
+                </div>
+
+                <div class="menu-card" id="card-peta" data-target="peta" data-url="/peta-pertualangan">
+                    Peta Petualangan
+                    <span>Mulai berpetualangan</span>
+                </div>
+
+                <div class="menu-card" id="card-papan" data-target="papan" data-url="{{ url_for('main.leaderboard') }}">
+                    Papan Peringkat
+                    <span>Lihat ranking teman</span>
+                </div>
+
+                <div class="menu-card" id="card-progres" data-target="progres" data-url="/progres-harian">
+                    Progres Harian
+                    <span>Cek kemajuanmu</span>
+                </div>
+
+                <div class="menu-card" id="card-misi" data-target="misi" data-url="{{ url_for('main.misi_harian') }}">
+                    Misi Harian
+                    <span>Wajib mulai di sini</span>
+                </div>
+            </div>
+
+        </article>
+
+        <aside class="mascot-fixed" id="mascotFixed" aria-live="polite">
+            <div
+                id="mascotAnimation"
+                class="mascot-anim-wrap"
+                data-animation-url="{{ url_for('static', filename='animations/mascot.json') }}"
+                role="button"
+                tabindex="0"
+                aria-label="Maskot"
+            ></div>
+            <img class="mascot-fallback" src="{{ url_for('static', filename='images/logo.png') }}" alt="Maskot fallback">
+            <div class="mascot-bubble" id="mascotMessage">Hai, ayo selesaikan misi!</div>
+        </aside>
+    </section>
+
+    <script>
+        const cards = document.querySelectorAll('.menu-card');
+        let pendingAudioPlayback = null;
+
+        function playMenuAudio(audioId, storageKey) {
+            const audioEl = document.getElementById(audioId);
+            if (!audioEl) {
+                console.error('[Audio] Audio element not found:', audioId);
+                return;
+            }
+
+            if (sessionStorage.getItem(storageKey) === 'true') {
+                console.info('[Audio] Audio already played for this session:', audioId);
+                return;
+            }
+
+            audioEl.volume = 1;
+
+            const attemptPlay = () => {
+                audioEl.muted = true;
+                return audioEl.play().then(() => {
+                    audioEl.muted = false;
+                    return audioEl.play();
+                });
+            };
+
+            attemptPlay().then(() => {
+                console.info('[Audio] Audio played successfully:', audioId);
+                sessionStorage.setItem(storageKey, 'true');
+            }).catch((error) => {
+                console.warn('[Audio] Autoplay blocked, retry without muted for', audioId, error);
+                audioEl.muted = false;
+                audioEl.play().then(() => {
+                    console.info('[Audio] Audio played on retry:', audioId);
+                    sessionStorage.setItem(storageKey, 'true');
+                }).catch((retryError) => {
+                    console.error('[Audio] Failed to play audio:', audioId, retryError);
+                });
+            });
+        }
+
+        function playAlwaysMenuAudio(audioId) {
+            const audioEl = document.getElementById(audioId);
+            if (!audioEl) {
+                console.error('[Audio] Audio element not found:', audioId);
+                return;
+            }
+
+            console.info('[Audio] Starting playAlwaysMenuAudio for:', audioId);
+            audioEl.volume = 1.0;
+            audioEl.currentTime = 0;
+
+            // Coba gunakan AudioHelper jika tersedia
+            if (window.AudioHelper) {
+                console.info('[Audio] Using AudioHelper for:', audioId);
+                AudioHelper.playSimple(audioEl);
+                return;
+            }
+
+            // Fallback: Direct play attempt
+            const playPromise = audioEl.play();
+            if (playPromise !== undefined) {
+                playPromise
+                    .then(() => {
+                        console.info('[Audio] Audio played successfully:', audioId);
+                    })
+                    .catch((error) => {
+                        console.error('[Audio] Playback failed:', audioId, error.name, error.message);
+                    });
+            } else {
+                console.warn('[Audio] Play promise not supported, retrying with simple play');
+                try {
+                    audioEl.play();
+                    console.info('[Audio] Audio play() called without promise:', audioId);
+                } catch (e) {
+                    console.error('[Audio] Exception during play:', e);
+                }
+            }
+        }
+
+        function speakFallback(text, onDone) {
+            if (!('speechSynthesis' in window)) {
+                return;
+            }
+
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'id-ID';
+            utterance.rate = 0.95;
+            utterance.onstart = () => {
+                if (typeof onDone === 'function') {
+                    onDone();
+                }
+            };
+            window.speechSynthesis.cancel();
+            window.speechSynthesis.speak(utterance);
+        }
+
+        async function isPetaAccessible() {
+            try {
+                const res = await fetch('/api/access-time-status');
+                if (!res.ok) return true;
+                const data = await res.json();
+                return !data.is_limited || !!data.allowed_now;
+            } catch (e) {
+                return true;
+            }
+        }
+
+        async function playPetaLockedAudio() {
+            let teks = 'Peta Petualangan sedang tidak dapat diakses. Silakan coba lagi sesuai jadwal dari guru.';
+            try {
+                const res = await fetch('/api/access-time-status');
+                if (res.ok) {
+                    const data = await res.json();
+                    teks = data.message || teks;
+                }
+            } catch (e) {
+                // Use fallback text when API is unavailable.
+            }
+
+            if ('speechSynthesis' in window) {
+                const utterance = new SpeechSynthesisUtterance(teks);
+                utterance.lang = 'id-ID';
+                utterance.rate = 1.0;
+                window.speechSynthesis.cancel();
+                window.speechSynthesis.speak(utterance);
+            } else {
+                const audio = new Audio('https://actions.google.com/sounds/v1/alarms/beep_short.ogg');
+                audio.play();
+            }
+        }
+
+        async function setMenuState(completed) {
+            // DEBUG: Log setMenuState call
+            console.log('[DEBUG] setMenuState called with completed:', completed);
+
+            const lockIds = ['card-materi', 'card-progres', 'card-papan'];
+            lockIds.forEach(id => {
+                const card = document.getElementById(id);
+                if (!card) return;
+                if (!completed) {
+                    card.classList.add('locked');
+                    card.classList.remove('enabled');
+                    console.log(`[DEBUG] setMenuState - ${id}: LOCKED`);
+                } else {
+                    card.classList.remove('locked');
+                    card.classList.add('enabled');
+                    console.log(`[DEBUG] setMenuState - ${id}: UNLOCKED`);
+                }
+            });
+
+            const petaCard = document.getElementById('card-peta');
+            const petaAvailable = completed && await isPetaAccessible();
+            if (petaCard) {
+                if (petaAvailable) {
+                    petaCard.classList.remove('locked');
+                    petaCard.classList.add('enabled');
+                    console.log('[DEBUG] setMenuState - card-peta: UNLOCKED');
+                } else {
+                    petaCard.classList.add('locked');
+                    petaCard.classList.remove('enabled');
+                    console.log('[DEBUG] setMenuState - card-peta: LOCKED');
+                }
+            }
+
+            const misiCard = document.getElementById('card-misi');
+            if (misiCard) {
+                if (completed) {
+                    misiCard.classList.add('locked');
+                    misiCard.classList.remove('enabled');
+                    console.log('[DEBUG] setMenuState - card-misi: LOCKED');
+                } else {
+                    misiCard.classList.remove('locked');
+                    misiCard.classList.add('enabled');
+                    console.log('[DEBUG] setMenuState - card-misi: UNLOCKED');
+                }
+            }
+        }
+
+            document.addEventListener('DOMContentLoaded', async () => {
+            const menuPage = document.querySelector('.menu-page');
+            const statusMisi = (menuPage.dataset.statusMisi || '').trim().toLowerCase();
+            let completed = statusMisi === 'selesai';
+            const currentUserId = menuPage.dataset.userId || null;
+
+            // DEBUG: Log frontend data
+            console.log('[DEBUG] Menu frontend - ID USER:', currentUserId);
+            console.log('[DEBUG] Menu frontend - STATUS_MISI data attribute:', statusMisi);
+            console.log('[DEBUG] Menu frontend - UNLOCK:', completed);
+
+            // Pastikan status mutakhir dengan membaca ulang dari database.
+            try {
+                const statusResponse = await fetch('/api/user-daily-status', { cache: 'no-store' });
+                    if (statusResponse.ok) {
+                    const statusData = await statusResponse.json();
+                    const apiCompleted = Boolean(statusData.mission_completed);
+                    console.log('[DEBUG] Menu frontend - API mission_completed:', apiCompleted, statusData);
+                    completed = apiCompleted; // Gunakan API sebagai sumber kebenaran
+                    await setMenuState(apiCompleted);
+                } else {
+                    console.warn('[DEBUG] Menu frontend - Gagal memuat status misi dari API:', statusResponse.status);
+                    await setMenuState(completed); // Fallback ke template data
+                }
+            } catch (err) {
+                console.warn('[DEBUG] Menu frontend - Error fetch status misi:', err);
+                await setMenuState(completed); // Fallback ke template data
+            }
+
+            setInterval(async () => {
+                try {
+                    const statusResponse = await fetch('/api/user-daily-status', { cache: 'no-store' });
+                    if (statusResponse.ok) {
+                        const statusData = await statusResponse.json();
+                        const apiCompleted = Boolean(statusData.mission_completed);
+                        if (apiCompleted !== completed) {
+                            completed = apiCompleted;
+                            await setMenuState(apiCompleted);
+                        }
+                    }
+                } catch (err) {
+                    console.warn('[DEBUG] Menu interval - Error fetch status misi:', err);
+                }
+            }, 60000);
+
+            // Jika template menu memiliki tombol Mulai, arahkan ke halaman peta/daftar game.
+            document.querySelectorAll('#btnStartMain, #btnMulai, [data-action="start"]').forEach((btn) => {
+                btn.addEventListener('click', () => {
+                    window.location.href = "{{ url_for('main.mulai') }}";
+                });
+            });
+
+            cards.forEach(card => {
+                card.addEventListener('click', async function () {
+                    const target = this.dataset.target;
+                    const targetUrl = this.dataset.url;
+
+                    if (target === 'peta') {
+                        if (!await isPetaAccessible()) {
+                            playPetaLockedAudio();
+                            return;
+                        }
+                    }
+
+                    if (this.classList.contains('locked')) {
+                        if (target === 'misi' && completed) {
+                            alert('Misi Harian hari ini sudah selesai dan hanya bisa dikerjakan 1 kali per hari.');
+                            return;
+                        }
+                        alert('Menu ini terkunci. Selesaikan Misi Harian dulu ya!');
+                        return;
+                    }
+
+                    if (target === 'misi') {
+                        window.location.href = targetUrl;
+                        return;
+                    }
+
+                    // redirect for enabled menu
+                    window.location.href = targetUrl;
+                });
+            });
+
+            const mascot = document.getElementById('mascotAnimation');
+            const mascotMessage = document.getElementById('mascotMessage');
+
+            function initMascotAnimation() {
+                const mascotWrap = document.getElementById('mascotFixed');
+                const animationUrl = mascot.dataset.animationUrl;
+
+                if (!window.lottie || !animationUrl) {
+                    mascotWrap.classList.add('fallback');
+                    return;
+                }
+
+                try {
+                    window.lottie.loadAnimation({
+                        container: mascot,
+                        renderer: 'svg',
+                        loop: true,
+                        autoplay: true,
+                        path: animationUrl
+                    });
+                    mascotWrap.classList.remove('fallback');
+                } catch (err) {
+                    mascotWrap.classList.add('fallback');
+                }
+            }
+
+            function triggerMascotGreeting() {
+                const text = 'Halo! Ayo selesaikan misi harian sekarang!';
+                mascotMessage.textContent = text;
+                if ('speechSynthesis' in window) {
+                    const greeting = new SpeechSynthesisUtterance(text);
+                    greeting.lang = 'id-ID';
+                    window.speechSynthesis.cancel();
+                    window.speechSynthesis.speak(greeting);
+                }
+            }
+
+            mascot.addEventListener('click', triggerMascotGreeting);
+            mascot.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    triggerMascotGreeting();
+                }
+            });
+
+            initMascotAnimation();
+
+            // Hapus/hentikan semua audio lain
+            document.querySelectorAll('audio').forEach(function(audio) {
+                try { audio.pause(); audio.currentTime = 0; } catch(e) {}
+            });
+
+            const menuSection = document.querySelector('.menu-page');
+            if (!menuSection) {
+                console.error('[Audio] Menu page section not found');
+            } else {
+                const shouldPlayLoginAudio = menuSection.dataset.playLoginAudio === '1';
+                const shouldPlayCompletionAudio = menuSection.dataset.playCompletionAudio === '1';
+
+                if (shouldPlayCompletionAudio) {
+                    playMenuAudio('completion-mission-audio', 'menu_completion_audio_played');
+                } else if (shouldPlayLoginAudio) {
+                    playMenuAudio('login-mission-audio', 'menu_login_audio_played');
+                } else {
+                    console.info('[Audio] No menu audio flagged to play');
+                }
+
+                // Pastikan audio selesaikan misi selalu diputar setiap kali menu dibuka
+                console.info('[Audio] Scheduling selesaikan-misi-audio playback...');
+                setTimeout(() => {
+                    playAlwaysMenuAudio('selesaikan-misi-audio');
+                }, 100);
+            }
+
+            // Debug: pastikan hanya satu audio
+            setTimeout(() => {
+                const audios = document.querySelectorAll('audio');
+                console.info('[Audio] Total audio elements on page:', audios.length);
+                audios.forEach(a => console.info('[Audio]', a.id, a.src));
+            }, 1000);
+        });
+
+        const socket = io();
+        socket.on('xp_update', function(data) {
+            // Update XP display
+            const xpElement = document.querySelector('.xp-display');
+            if (xpElement) {
+                xpElement.textContent = 'XP: ' + data.xp;
+            }
+            // Show notification
+            const message = 'XP Updated! Level: ' + data.level + ', Streak: ' + (data.streak ? data.streak : 0) + ', Bonus: ' + (data.bonus ? data.bonus : 0);
+            showNotification(message);
+        });
+
+        function showNotification(message) {
+            const notification = document.createElement('div');
+            notification.textContent = message;
+            notification.style.position = 'fixed';
+            notification.style.top = '20px';
+            notification.style.right = '20px';
+            notification.style.background = '#4CAF50';
+            notification.style.color = 'white';
+            notification.style.padding = '10px';
+            notification.style.borderRadius = '5px';
+            notification.style.zIndex = '1000';
+            document.body.appendChild(notification);
+            setTimeout(() => document.body.removeChild(notification), 5000);
+        }
+    </script>
+</body>
+
+</html>
