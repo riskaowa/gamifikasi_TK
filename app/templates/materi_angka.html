@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Belajar Angka - Gamifikasi PAUD</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='gamification.css') }}" />
+    <style>
+        body { margin:0; font-family: 'Segoe UI', Tahoma, sans-serif; background: url("{{ url_for('static', filename='images/bg.png') }}") no-repeat center center / cover; background-attachment: fixed; }
+        .page { max-width: 940px; margin: 26px auto 32px; padding: 16px; }
+        .title { text-align:center; color:#1f4f8a; font-size:2.2rem; font-weight: 800; }
+        .subtitle { text-align:center; color:#2e5f90; margin: 8px auto 18px; font-size:1rem; }
+        .video-card { background:#fff; border-radius:16px; border:2px solid #c7defd; box-shadow:0 12px 22px rgba(12,52,108,.16); padding:18px; }
+        .iframe-wrap { position:relative; overflow:hidden; padding-top:56.25%; border-radius:12px; }
+        .iframe-wrap iframe { position:absolute; top:0; left:0; width:100%; height:100%; border:0; border-radius:12px; }
+        .actions { display:flex; flex-wrap:wrap; gap:12px; justify-content:center; margin-top:16px; }
+        .btn { border:0; border-radius:10px; padding:11px 18px; font-weight:700; font-size:0.98rem; cursor:pointer; text-decoration:none; color:#fff; }
+        .btn-secondary { background:#3478da; }
+        .btn-secondary:hover { background:#275fa8; }
+        .btn-link { background:#41b6a3; }
+        .btn-link:hover { background:#2f8f77; }
+        .alert { text-align:center; margin-top:8px; color:#1f4f8a; font-weight:700; }
+    </style>
+</head>
+<body>
+    <main class="page">
+        <h1 class="title">Belajar Angka</h1>
+        <p class="subtitle">Tonton video pembelajaran angka terlebih dahulu, kemudian kamu bisa mulai belajar!</p>
+        <div class="video-card">
+            <div class="iframe-wrap">
+                <iframe src="https://www.youtube.com/embed/X3OfM6qsjKQ" title="Belajar Angka" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+            </div>
+            <div class="actions">
+                <a target="_blank" rel="noopener" href="https://youtu.be/X3OfM6qsjKQ" class="btn btn-link">Buka di YouTube</a>
+                <a href="{{ url_for('main.materi') }}" class="btn btn-secondary">Selesai Belajar / Kembali</a>
+            </div>
+            <p class="alert">Tonton video hingga selesai, lalu kembali ke materi.</p>
+        </div>
+    </main>
+</body>
+</html>

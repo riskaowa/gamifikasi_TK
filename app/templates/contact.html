@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kontak & Informasi - Gamifikasi PAUD</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='gamification.css') }}">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: url("{{ url_for('static', filename='images/bg.png') }}") no-repeat center center / cover;
+            background-attachment: fixed;
+            color: #333;
+            min-height: 100vh;
+        }
+
+        .contact-page {
+            max-width: 1200px;
+            margin: 0 auto;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .contact-header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(6px);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .header-content {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .header-logo {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            object-fit: contain;
+            background: white;
+            border: 2px solid #19396b;
+            padding: 4px;
+        }
+
+        .header-text h1 {
+            font-size: 1.8rem;
+            color: #19396b;
+            margin: 0;
+        }
+
+        .header-text p {
+            font-size: 0.9rem;
+            color: #666;
+            margin: 4px 0 0;
+        }
+
+        .btn-back {
+            background: #19396b;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.95rem;
+        }
+
+        .btn-back:hover {
+            background: #0d1f3f;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .content-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+
+        .content-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(6px);
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-title {
+            font-size: 1.4rem;
+            color: #19396b;
+            margin-bottom: 16px;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-title::before {
+            font-size: 1.8rem;
+        }
+
+        .vision-section .card-title::before {
+            content: '🎯';
+        }
+
+        .mission-section .card-title::before {
+            content: '🚀';
+        }
+
+        .contact-section .card-title::before {
+            content: '📞';
+        }
+
+        .location-section .card-title::before {
+            content: '📍';
+        }
+
+        .card-text {
+            font-size: 0.95rem;
+            line-height: 1.8;
+            color: #555;
+            margin-bottom: 12px;
+        }
+
+        .mission-list {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .mission-list li {
+            font-size: 0.95rem;
+            line-height: 1.8;
+            color: #555;
+            margin-bottom: 12px;
+            padding-left: 24px;
+            position: relative;
+        }
+
+        .mission-list li::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            color: #4caf50;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+
+        .contact-info {
+            margin-bottom: 16px;
+        }
+
+        .contact-item {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 14px;
+            align-items: flex-start;
+        }
+
+        .contact-icon {
+            font-size: 1.4rem;
+            min-width: 30px;
+            text-align: center;
+            color: #19396b;
+        }
+
+        .contact-detail {
+            flex: 1;
+        }
+
+        .contact-label {
+            font-weight: 700;
+            color: #19396b;
+            font-size: 0.9rem;
+            margin-bottom: 2px;
+        }
+
+        .contact-value {
+            color: #666;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        .contact-value a {
+            color: #19396b;
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.3s ease;
+        }
+
+        .contact-value a:hover {
+            color: #0d1f3f;
+            text-decoration: underline;
+        }
+
+        .map-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(6px);
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            margin-bottom: 24px;
+        }
+
+        .map-title {
+            font-size: 1.4rem;
+            color: #19396b;
+            margin-bottom: 16px;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .map-title::before {
+            content: '🗺️';
+            font-size: 1.8rem;
+        }
+
+        .map-wrapper {
+            position: relative;
+            width: 100%;
+            padding-bottom: 60%;
+            height: 0;
+            overflow: hidden;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .map-wrapper iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+            border-radius: 8px;
+        }
+
+        .map-link {
+            display: inline-block;
+            margin-top: 12px;
+            padding: 12px 16px;
+            background: #19396b;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 700;
+            transition: all 0.3s ease;
+        }
+
+        .map-link:hover {
+            background: #0d1f3f;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .footer-info {
+            background: rgba(31, 64, 122, 0.1);
+            padding: 16px;
+            border-radius: 8px;
+            text-align: center;
+            color: #555;
+            font-size: 0.9rem;
+            margin-bottom: 24px;
+        }
+
+        @media (max-width: 768px) {
+            .content-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .contact-header {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .header-content {
+                flex-direction: column;
+                width: 100%;
+            }
+
+            .header-text h1 {
+                font-size: 1.4rem;
+            }
+
+            .btn-back {
+                width: 100%;
+            }
+
+            .card-title {
+                font-size: 1.2rem;
+            }
+
+            .map-wrapper {
+                padding-bottom: 50%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="contact-page">
+        <!-- Header -->
+        <div class="contact-header">
+            <div class="header-content">
+                <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo PAUD" class="header-logo">
+                <div class="header-text">
+                    <h1>GAMIFIKASI PAUD</h1>
+                    <p>TK Diponegoro 95 Teluk</p>
+                </div>
+            </div>
+            <a href="{{ url_for('main.index') }}" class="btn-back">⌂ Kembali ke Beranda</a>
+        </div>
+
+        <!-- Main Content Grid -->
+        <div class="content-grid">
+            <!-- Visi -->
+            <div class="content-card vision-section">
+                <h2 class="card-title">Visi</h2>
+                <p class="card-text">
+                    Menjadi lembaga pendidikan anak usia dini yang unggul, inovatif, dan inspiratif dalam mengembangkan potensi optimal setiap anak melalui pendekatan pembelajaran yang menyenangkan dan holistik.
+                </p>
+            </div>
+
+            <!-- Misi -->
+            <div class="content-card mission-section">
+                <h2 class="card-title">Misi</h2>
+                <ul class="mission-list">
+                    <li>Memberikan pendidikan berkualitas dengan pendekatan bermain sambil belajar</li>
+                    <li>Mengembangkan kreativitas, inovasi, dan kemampuan berpikir kritis anak</li>
+                    <li>Membangun karakter dan nilai-nilai moral sejak dini</li>
+                    <li>Menciptakan lingkungan belajar yang aman, nyaman, dan mendukung</li>
+                    <li>Melibatkan orang tua dalam proses pendidikan anak secara aktif</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Contact Information -->
+        <div class="content-grid">
+            <!-- Kontak -->
+            <div class="content-card contact-section">
+                <h2 class="card-title">Informasi Kontak</h2>
+                <div class="contact-info">
+                    <div class="contact-item">
+                        <div class="contact-icon">📱</div>
+                        <div class="contact-detail">
+                            <div class="contact-label">Telepon/WhatsApp</div>
+                            <div class="contact-value">
+                                <a href="tel:+6281234567890">+62 812-3456-7890</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="contact-item">
+                        <div class="contact-icon">✉️</div>
+                        <div class="contact-detail">
+                            <div class="contact-label">Email</div>
+                            <div class="contact-value">
+                                <a href="mailto:info@tkdiponegoro95.ac.id">info@tkdiponegoro95.ac.id</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="contact-item">
+                        <div class="contact-icon">🕐</div>
+                        <div class="contact-detail">
+                            <div class="contact-label">Jam Operasional</div>
+                            <div class="contact-value">Senin - Jumat: 07:00 - 15:30<br>Sabtu - Minggu: Tutup</div>
+                        </div>
+                    </div>
+
+                    <div class="contact-item">
+                        <div class="contact-icon">👥</div>
+                        <div class="contact-detail">
+                            <div class="contact-label">Kepala Sekolah</div>
+                            <div class="contact-value">Ibu Siti Nurhaliza, S.Pd</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Alamat -->
+            <div class="content-card location-section">
+                <h2 class="card-title">Lokasi & Alamat</h2>
+                <div class="contact-info">
+                    <div class="contact-item">
+                        <div class="contact-icon">🏫</div>
+                        <div class="contact-detail">
+                            <div class="contact-label">Nama Sekolah</div>
+                            <div class="contact-value">TK Diponegoro 95 Teluk</div>
+                        </div>
+                    </div>
+
+                    <div class="contact-item">
+                        <div class="contact-icon">📍</div>
+                        <div class="contact-detail">
+                            <div class="contact-label">Alamat Lengkap</div>
+                            <div class="contact-value">
+                                Jalan Diponegoro No. 95<br>
+                                Kelurahan Teluk<br>
+                                Kecamatan Banjarmasin Selatan<br>
+                                Kota Banjarmasin<br>
+                                Provinsi Kalimantan Selatan 70237
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="contact-item">
+                        <div class="contact-icon">🆔</div>
+                        <div class="contact-detail">
+                            <div class="contact-label">NPSN</div>
+                            <div class="contact-value">69765012</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Map Section -->
+        <div class="map-container">
+            <h2 class="map-title">Lokasi di Peta</h2>
+            <div class="map-wrapper">
+                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3984.8234567890!2d114.5789012!3d-3.3234567!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2de68b8c9f9f9f9f%3A0x1234567890abcdef!2sTK%20Diponegoro%2095%20Teluk!5e0!3m2!1sid!2sid!4v1234567890123" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade" title="Lokasi TK Diponegoro 95 Teluk"></iframe>
+            </div>
+            <a href="https://maps.app.goo.gl/nwbXEdFDcAW9UBZQ9" target="_blank" rel="noopener noreferrer" class="map-link">
+                📌 Buka di Google Maps
+            </a>
+        </div>
+
+        <!-- Footer Info -->
+        <div class="footer-info">
+            <p>
+                📧 Hubungi kami melalui WhatsApp atau email untuk informasi lebih lanjut mengenai pendaftaran dan program sekolah.
+            </p>
+        </div>
+    </div>
+</body>
+
+</html>

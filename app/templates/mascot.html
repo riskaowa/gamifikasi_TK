@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mascot Animation - Gamifikasi PAUD</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #000;
+            overflow: hidden;
+            font-family: 'Bubblegum Sans', cursive;
+        }
+
+        .mascot-container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            background: #000;
+        }
+
+        #mascotVideo {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: block;
+        }
+
+        .loading-spinner {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10;
+            display: none;
+        }
+
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid #fff;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error-message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            display: none;
+            z-index: 20;
+            max-width: 80%;
+        }
+
+        .error-message p {
+            margin-bottom: 15px;
+            font-size: 1rem;
+        }
+
+        .error-message button {
+            padding: 10px 20px;
+            background: #ffd700;
+            color: #000;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        .error-message button:hover {
+            background: #ffed4e;
+        }
+
+        audio {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="mascot-container">
+        <div class="loading-spinner">
+            <div class="spinner"></div>
+        </div>
+        <video
+            id="mascotVideo"
+            autoplay
+            playsinline
+            preload="auto"
+            muted>
+            <source src="{{ url_for('static', filename='video/mas1.mp4') }}" type="video/mp4">
+            Your browser does not support the video tag.
+        </video>
+        <div class="error-message" id="errorMessage">
+            <p id="errorText">Video tidak dapat dimuat</p>
+            <button onclick="handleError()">Lanjut ke Menu</button>
+        </div>
+    </div>
+
+    <audio id="homeAudio" preload="auto">
+        <source src="{{ url_for('static', filename='audio/Home.mp3') }}" type="audio/mpeg">
+    </audio>
+
+    <script src="{{ url_for('static', filename='audio-helper.js') }}"></script>
+    <script>
+        (function() {
+            'use strict';
+
+            const video = document.getElementById('mascotVideo');
+            const audio = document.getElementById('homeAudio');
+            const errorMessage = document.getElementById('errorMessage');
+            const loadingSpinner = document.querySelector('.loading-spinner');
+            let audioPlayed = false;
+
+            // Function untuk menampilkan loading spinner
+            function showLoading() {
+                loadingSpinner.style.display = 'block';
+            }
+
+            // Function untuk menyembunyikan loading spinner
+            function hideLoading() {
+                loadingSpinner.style.display = 'none';
+            }
+
+            // Function untuk menampilkan pesan error
+            function showError(message = 'Video tidak dapat dimuat') {
+                document.getElementById('errorText').textContent = message;
+                errorMessage.style.display = 'block';
+                hideLoading();
+            }
+
+            // Function untuk menangani error
+            window.handleError = function() {
+                // Redirect ke login
+                window.location.href = "/login";
+            };
+
+            // Function untuk memutar audio
+            function playAudio() {
+                if (audioPlayed) return;
+                audioPlayed = true;
+
+                if (window.AudioHelper) {
+                    AudioHelper.playAudio(audio, { loop: false })
+                        .then(() => {
+                            console.log('[Mascot] Audio dimulai');
+                        })
+                        .catch((err) => {
+                            console.warn('[Mascot] Audio gagal dimulai:', err);
+                        });
+                } else {
+                    // Fallback jika AudioHelper tidak tersedia
+                    audio.muted = false;
+                    audio.volume = 1.0;
+                    const playPromise = audio.play();
+                    if (playPromise) {
+                        playPromise.catch((err) => {
+                            console.warn('[Mascot] Audio play failed:', err);
+                        });
+                    }
+                }
+            }
+
+            // Event listeners untuk video
+            video.addEventListener('loadstart', showLoading);
+
+            video.addEventListener('canplay', function() {
+                hideLoading();
+                // Mainkan audio ketika video siap diputar
+                playAudio();
+            });
+
+            video.addEventListener('play', function() {
+                console.log('[Mascot] Video mulai diputar');
+            });
+
+            video.addEventListener('ended', function() {
+                console.log('[Mascot] Video selesai');
+                // Redirect ke login setelah video selesai
+                setTimeout(() => {
+                    window.location.href = "/login";
+                }, 500);
+            });
+
+            video.addEventListener('error', function(e) {
+                console.error('[Mascot] Video error:', e);
+                showError('Video tidak dapat dimuat. Silakan coba lagi atau lanjut ke menu.');
+            });
+
+            video.addEventListener('stalled', function() {
+                console.warn('[Mascot] Video stalled');
+                showLoading();
+            });
+
+            // Ensure video muted (untuk autoplay policy)
+            video.muted = true;
+            video.defaultMuted = true;
+
+            // Coba mainkan video dengan autoplay
+            const playPromise = video.play();
+            if (playPromise) {
+                playPromise
+                    .then(() => {
+                        console.log('[Mascot] Video autoplay berhasil');
+                        // Delay audio playback untuk memastikan video sudah berjalan
+                        setTimeout(() => {
+                            playAudio();
+                        }, 100);
+                    })
+                    .catch((err) => {
+                        console.error('[Mascot] Video autoplay gagal:', err);
+                        showError('Autoplay tidak diizinkan. Klik tombol untuk lanjut.');
+                    });
+            }
+
+            // Handle visibility change (jika user switch tab)
+            document.addEventListener('visibilitychange', function() {
+                if (document.hidden) {
+                    video.pause();
+                    audio.pause();
+                } else {
+                    playAudio();
+                    // Coba resume video
+                    const resumePromise = video.play();
+                    if (resumePromise) {
+                        resumePromise.catch((err) => {
+                            console.warn('[Mascot] Resume video gagal:', err);
+                        });
+                    }
+                }
+            });
+
+            // Countdown jika video tidak berakhir dalam waktu tertentu (safety net)
+            setTimeout(() => {
+                if (!video.ended) {
+                    console.warn('[Mascot] Video timeout, redirecting to login');
+                    window.location.href = "/login";
+                }
+            }, 60000); // 60 detik timeout
+
+        })();
+    </script>
+</body>
+</html>

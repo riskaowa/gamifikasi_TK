@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Belajar Huruf - Gamifikasi PAUD</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='gamification.css') }}" />
+    <style>
+        body { margin:0; font-family: 'Segoe UI', Tahoma, sans-serif; background: url("{{ url_for('static', filename='images/bg.png') }}") no-repeat center center / cover; background-attachment: fixed; }
+        .page { max-width: 940px; margin: 26px auto 32px; padding: 16px; }
+        .title { text-align:center; color:#1f4f8a; font-size:2.2rem; font-weight: 800; }
+        .subtitle { text-align:center; color:#2e5f90; margin: 8px auto 18px; font-size:1rem; }
+        .video-card { background:#fff; border-radius:16px; border:2px solid #c7defd; box-shadow:0 12px 22px rgba(12,52,108,.16); padding:18px; }
+        .iframe-wrap { position:relative; overflow:hidden; padding-top:56.25%; border-radius:12px; background:#000; }
+        .iframe-wrap iframe,
+        .iframe-wrap .yt-facade { position:absolute; top:0; left:0; width:100%; height:100%; border:0; border-radius:12px; }
+        .yt-facade { cursor:pointer; }
+        .yt-facade img { width:100%; height:100%; object-fit:cover; border-radius:12px; opacity:.92; transition:opacity .2s; }
+        .yt-facade:hover img { opacity:.75; }
+        .play-btn { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:68px; height:68px; background:rgba(220,0,0,.9); border-radius:50%; display:flex; align-items:center; justify-content:center; pointer-events:none; transition:transform .2s; }
+        .yt-facade:hover .play-btn { transform:translate(-50%,-50%) scale(1.1); }
+        .play-btn svg { width:28px; height:28px; fill:#fff; margin-left:5px; }
+        .actions { display:flex; flex-wrap:wrap; gap:12px; justify-content:center; margin-top:16px; }
+        .btn { border:0; border-radius:10px; padding:11px 18px; font-weight:700; font-size:0.98rem; cursor:pointer; text-decoration:none; color:#fff; }
+        .btn-secondary { background:#3478da; }
+        .btn-secondary:hover { background:#275fa8; }
+        .btn-link { background:#41b6a3; }
+        .btn-link:hover { background:#2f8f77; }
+        .alert { text-align:center; margin-top:8px; color:#1f4f8a; font-weight:700; }
+    </style>
+</head>
+<body>
+    <main class="page">
+        <h1 class="title">Belajar Huruf</h1>
+        <p class="subtitle">Tonton video pembelajaran huruf terlebih dahulu, kemudian kamu bisa mulai belajar!</p>
+        <div class="video-card">
+            <div class="iframe-wrap" id="videoWrap">
+                <div class="yt-facade" id="ytFacade" onclick="loadVideo()">
+                    <img src="https://img.youtube.com/vi/hj0vvhT62Mc/maxresdefault.jpg"
+                         onerror="this.src='https://img.youtube.com/vi/hj0vvhT62Mc/hqdefault.jpg'"
+                         alt="Video Belajar Huruf" />
+                    <div class="play-btn">
+                        <svg viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg>
+                    </div>
+                </div>
+            </div>
+            <div class="actions">
+                <a target="_blank" rel="noopener" href="https://youtu.be/hj0vvhT62Mc" class="btn btn-link">Buka di YouTube</a>
+                <a href="{{ url_for('main.materi') }}" class="btn btn-secondary">Selesai Belajar / Kembali</a>
+            </div>
+            <p class="alert">Tonton video hingga selesai, lalu kembali ke materi.</p>
+        </div>
+    </main>
+    <script>
+        function loadVideo() {
+            const wrap = document.getElementById('videoWrap');
+            const facade = document.getElementById('ytFacade');
+            const iframe = document.createElement('iframe');
+            iframe.src = 'https://www.youtube.com/embed/hj0vvhT62Mc?autoplay=1';
+            iframe.title = 'Belajar Huruf';
+            iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
+            iframe.allowFullscreen = true;
+            wrap.replaceChild(iframe, facade);
+        }
+    </script>
+</body>
+</html>

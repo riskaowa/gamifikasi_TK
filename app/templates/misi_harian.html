@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Misi Harian - Gamifikasi PAUD</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='gamification.css') }}">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bodymovin/5.12.2/lottie.min.js"></script>
+</head>
+<audio id="selesai-misi-audio" data-autostop="true" src="{{ url_for('static', filename='audio/selesai.mp3') }}" preload="auto"></audio>
+
+<body class="gamified-body">
+    <!-- Pop-up animasi tepuk tangan -->
+    <div id="clap-popup" style="display:none;position:fixed;z-index:3000;left:0;top:0;width:100vw;height:100vh;background:rgba(0,0,0,0.7);backdrop-filter:blur(4px);align-items:center;justify-content:center;flex-direction:column;">
+        <div id="clap-lottie" style="width:280px;height:280px;margin:0 auto;"></div>
+        <div style="font-size:2.2rem;font-weight:900;color:#fff;margin-top:24px;text-shadow:0 3px 16px rgba(0,0,0,0.5),0 2px 0 #ff9800;">Hebat! Kamu berhasil menyelesaikan misi 🎉</div>
+    </div>
+    <div class="gamified-container">
+        <h1 class="gamified-title">Misi Harian</h1>
+        <p>Halo, {{ current_user.name }}! Selesaikan misi hari ini.</p>
+        {% if mission_date and mission_date != today_iso %}
+            <p style="margin-top:0.2rem;color:#5f6f86;">Menampilkan soal Misi Harian tanggal <strong>{{ mission_date }}</strong> dari database.</p>
+        {% endif %}
+        <div
+            id="misi-page-state"
+            data-misi-done='{{ misi_done|tojson|safe }}'
+            data-play-completion-audio='{{ should_play_completion_audio|tojson|safe }}'
+            data-today='{{ today_iso }}'
+            data-user-id='{{ current_user.id }}'
+            hidden
+        ></div>
+
+        {% if misi_done %}
+            <div style="text-align: center; padding: 20px; border: 2px solid #4caf50; border-radius: 14px; background: rgba(76, 175, 80, 0.1);">
+                <h2 style="margin: 0 0 12px;">🎉 Misi harian selesai!</h2>
+                <p style="margin: 0 0 8px;">Kamu sudah menyelesaikan misi hari ini.</p>
+                {% if mission_stats %}
+                <p style="margin: 0 0 6px;">Benar: <strong>{{ mission_stats.correct_answers }}</strong> / {{ mission_stats.total_questions }}</p>
+                <p style="margin: 0 0 6px;">Total percobaan: <strong>{{ mission_stats.total_attempts }}</strong></p>
+                {% endif %}
+                <p style="margin: 0 0 12px;">XP kamu sekarang: <strong>{{ currently_xp }}</strong> (Level {{ currently_level }})</p>
+                <a class="hero-btn" href="{{ url_for('main.logout') }}">Keluar</a>
+            </div>
+        {% elif questions|length == 0 %}
+        <p style="color: #d9534f;">
+            {% if error_message %}
+                {{ error_message }}
+            {% else %}
+                Saat ini belum ada soal yang tersedia. Silakan hubungi admin.
+            {% endif %}
+        </p>
+        <a class="hero-btn" href="{{ url_for('main.user_dashboard') }}">Kembali ke Menu</a>
+        {% else %}
+            {% if not misi_done and questions|length > 0 %}
+            <div id="misi-box" style="text-align: left;">
+                <div
+                    id="misi-data"
+                    data-questions='{{ questions|tojson|safe }}'
+                    data-misi-done='{{ misi_done|tojson|safe }}'
+                    data-mission-time-limit='{{ mission_time_limit }}'
+                    data-today='{{ today_iso }}'
+                    data-user-id='{{ current_user.id }}'
+                    hidden
+                ></div>
+                <div style="margin-bottom: 10px; font-weight: 700;">
+                    Soal <span id="current-number">1</span> dari {{ questions|length }}
+                    <span style="float:right;">Skor: <span id="score-value">0</span></span>
+                </div>
+                <div id="timer" style="font-size: 1rem; margin-bottom: 12px;">Waktu soal: <span id="time-left">60</span>s</div>
+                <div style="font-size: 0.95rem; margin-bottom: 12px; color: #41526f;">Total percobaan: <span id="attempts-value">0</span></div>
+                <div id="question-text" style="font-size: 1.1rem; font-weight: 600; margin-bottom: 18px;"></div>
+                <div id="question-visual" style="margin-bottom:12px;text-align:center;"></div>
+                <div id="options"></div>
+                <div id="feedback" style="margin-top: 14px; font-weight: 600; min-height: 24px;"></div>
+            </div>
+            <div style="margin-top: 16px;"><a href="{{ url_for('main.logout') }}">Keluar</a></div>
+            {% endif %}
+        {% endif %}
+    </div>
+
+<script>
+    const menuRedirectUrl = "{{ url_for('main.menu') }}";
+    const pageStateEl = document.getElementById('misi-page-state');
+    const misiDataEl = document.getElementById('misi-data');
+    const selesaiMisiAudioEl = document.getElementById('selesai-misi-audio');
+    const missionCompleteAudioEl = selesaiMisiAudioEl;
+    let pendingMissionAudioPlayback = null;
+    let selesaiAudioPlayed = false;
+
+    async function markAudioPlayed(audioType) {
+        try {
+            const response = await fetch("{{ url_for('main.api_user_daily_status_audio_played') }}", {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ audio_type: audioType })
+            });
+            if (!response.ok) {
+                console.error('[Audio] gagal menyimpan status audio', audioType, response.status);
+                return;
+            }
+            const payload = await response.json();
+            console.info('[Audio] status audio tersimpan', payload);
+        } catch (error) {
+            console.error('[Audio] error saat menyimpan status audio', audioType, error);
+        }
+    }
+
+    function showAudioNotification(message, type = 'info') {
+        const existing = document.getElementById('mission-audio-toast');
+        if (existing) {
+            existing.remove();
+        }
+
+        const toast = document.createElement('div');
+        toast.id = 'mission-audio-toast';
+        toast.textContent = message;
+        toast.style.position = 'fixed';
+        toast.style.left = '50%';
+        toast.style.bottom = '24px';
+        toast.style.transform = 'translateX(-50%)';
+        toast.style.padding = '12px 16px';
+        toast.style.borderRadius = '12px';
+        toast.style.color = '#fff';
+        toast.style.fontWeight = '700';
+        toast.style.zIndex = '2000';
+        toast.style.boxShadow = '0 8px 24px rgba(0, 0, 0, 0.18)';
+        toast.style.background = type === 'error' ? '#c62828' : '#2e7d32';
+        document.body.appendChild(toast);
+
+        setTimeout(() => {
+            if (toast.parentNode) {
+                toast.parentNode.removeChild(toast);
+            }
+        }, 3500);
+    }
+
+    function attachAudioDiagnostics(audioEl, label) {
+        if (!audioEl || audioEl.dataset.diagnosticsAttached === '1') {
+            return;
+        }
+
+        audioEl.dataset.diagnosticsAttached = '1';
+        console.info('[Audio]', label, 'src=', audioEl.currentSrc || audioEl.src);
+
+        audioEl.addEventListener('loadstart', () => console.info('[Audio]', label, 'loadstart'));
+        audioEl.addEventListener('loadedmetadata', () => console.info('[Audio]', label, 'loadedmetadata', { duration: audioEl.duration }));
+        audioEl.addEventListener('canplaythrough', () => console.info('[Audio]', label, 'canplaythrough'));
+        audioEl.addEventListener('play', () => console.info('[Audio]', label, 'play event'));
+        audioEl.addEventListener('error', () => {
+            const mediaError = audioEl.error;
+            console.error('[Audio]', label, 'error', mediaError ? mediaError.code : 'unknown');
+            showAudioNotification('Misi harian telah diselesaikan.', 'error');
+        });
+    }
+
+    function registerDeferredMissionAudioPlayback(callback, noticeText) {
+        pendingMissionAudioPlayback = () => {
+            console.info('[Audio] retry mission-complete playback after user interaction');
+            callback();
+        };
+
+        const runPending = () => {
+            if (!pendingMissionAudioPlayback) {
+                return;
+            }
+            const action = pendingMissionAudioPlayback;
+            pendingMissionAudioPlayback = null;
+            action();
+            document.removeEventListener('click', runPending);
+            document.removeEventListener('keydown', runPending);
+            document.removeEventListener('touchstart', runPending);
+        };
+
+        document.addEventListener('click', runPending, { once: true });
+        document.addEventListener('keydown', runPending, { once: true });
+        document.addEventListener('touchstart', runPending, { once: true });
+
+        showAudioNotification(noticeText || 'Klik di mana saja untuk memutar audio misi.');
+    }
+
+    function speakFallback(text, onDone) {
+        if (!('speechSynthesis' in window)) {
+            return;
+        }
+
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'id-ID';
+        utterance.rate = 0.95;
+        utterance.onstart = () => {
+            if (typeof onDone === 'function') {
+                onDone();
+            }
+        };
+        window.speechSynthesis.cancel();
+        window.speechSynthesis.speak(utterance);
+    }
+
+    if (pageStateEl) {
+        const pageMissionDone = pageStateEl.dataset.misiDone === 'true';
+        const shouldPlayCompletionAudio = pageStateEl.dataset.playCompletionAudio === 'true';
+        if (pageMissionDone && shouldPlayCompletionAudio) {
+            console.info('[Audio] completed mission page will play completion audio from backend status');
+        }
+    }
+
+    attachAudioDiagnostics(missionCompleteAudioEl, 'mission-complete');
+
+    if (misiDataEl) {
+        const misiDone = misiDataEl.dataset.misiDone === 'true';
+        const missionLocked = misiDataEl.dataset.missionLocked === 'true';
+        const questionsJson = misiDataEl.dataset.questions || '[]';
+        const questionsData = JSON.parse(questionsJson);
+        console.log('[DEBUG] misiDone:', misiDone, 'missionLocked:', missionLocked, 'questionsData:', questionsData);
+        const today = misiDataEl.dataset.today || new Date().toISOString().slice(0, 10);
+        const userId = misiDataEl.dataset.userId || '{{ current_user.id }}';
+
+        // ── State ──────────────────────────────────────────────────
+        let currentIndex = 0;
+        let score = 0;
+        let totalAttempts = 0;
+        let attemptsOnCurrentQuestion = 0;
+        let answeredQuestions = 0;
+        let missionSubmitted = false;
+        let currentQuestionResolved = false;
+        let isMissionCompleted = false;
+        let audioPlayed = false;
+
+        // Per-question timer
+        let timeRemaining = 60;
+        let timerInterval = null;
+
+        // ── DOM refs ───────────────────────────────────────────────
+        const questionText    = document.getElementById('question-text');
+        const questionVisual  = document.getElementById('question-visual');
+        const optionsContainer = document.getElementById('options');
+        const timeLeftEl      = document.getElementById('time-left');
+        const currentNumberEl = document.getElementById('current-number');
+        const scoreEl         = document.getElementById('score-value');
+        const feedbackEl      = document.getElementById('feedback');
+        const attemptsEl      = document.getElementById('attempts-value');
+
+        // ── Helpers ────────────────────────────────────────────────
+        function setFeedback(message, mode) {
+            feedbackEl.textContent = message;
+            const colors = { success: '#2e7d32', warning: '#e65100', danger: '#b71c1c' };
+            feedbackEl.style.color = colors[mode] || '#1f407a';
+        }
+
+        function disableOptions() {
+            optionsContainer.querySelectorAll('button').forEach(btn => {
+                btn.disabled = true;
+                btn.style.opacity = '0.75';
+            });
+        }
+
+        function stopTimer() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+        }
+
+        // ── Per-question timer (60 s) ──────────────────────────────
+        function startQuestionTimer() {
+            stopTimer();
+            timeRemaining = 60;
+            timeLeftEl.textContent = timeRemaining;
+
+            timerInterval = setInterval(() => {
+                timeRemaining -= 1;
+                timeLeftEl.textContent = timeRemaining;
+
+                if (timeRemaining <= 0) {
+                    stopTimer();
+                    if (!currentQuestionResolved && !missionSubmitted) {
+                        setFeedback('Waktu habis! Otomatis lanjut ke soal berikutnya.', 'danger');
+                        disableOptions();
+                        setTimeout(goToNextQuestion, 750);
+                    }
+                }
+            }, 1000);
+        }
+
+        // ── Render ─────────────────────────────────────────────────
+        function renderQuestion() {
+            if (!questionsData || questionsData.length === 0 || missionSubmitted) return;
+
+            const q = questionsData[currentIndex];
+            questionText.textContent = q.prompt;
+            currentNumberEl.textContent = currentIndex + 1;
+            setFeedback('', 'neutral');
+            attemptsOnCurrentQuestion = 0;
+            currentQuestionResolved = false;
+            optionsContainer.innerHTML = '';
+
+            if (q.question_image) {
+                questionVisual.innerHTML = '<img src="' + q.question_image + '" alt="Gambar soal" style="max-width:min(320px,82vw);width:100%;height:auto;border-radius:12px;border:2px solid #c8daf8;background:#fff;" />';
+            } else {
+                questionVisual.innerHTML = '';
+            }
+
+            ['option_a', 'option_b', 'option_c'].forEach(optKey => {
+                if (!q[optKey]) {
+                    return;
+                }
+                const btn = document.createElement('button');
+                btn.className = 'gamified-btn';
+                btn.style.cssText = 'display:block;width:100%;margin-top:12px;padding:14px 10px;background-color:#f8fbff;color:#1f407a;border:2px solid #1f407a;border-radius:16px;text-align:center;transition:transform 0.15s ease;';
+
+                const imageKey = optKey.replace('option_', 'option_image_');
+                const optionImage = q[imageKey];
+                if (optionImage) {
+                    btn.innerHTML =
+                        '<div style="display:flex;flex-direction:column;align-items:center;gap:10px;">' +
+                        '<img src="' + optionImage + '" alt="Pilihan" style="width:min(260px,78vw);height:auto;border-radius:14px;border:2px solid #d3e4f5;background:#fff;" />' +
+                        '<span style="font-weight:800;color:#1f407a;font-size:1rem;">' + (q[optKey] || '') + '</span>' +
+                        '</div>';
+                } else {
+                    btn.textContent = q[optKey];
+                    btn.style.fontSize = '1.05rem';
+                    btn.style.fontWeight = '800';
+                }
+                btn.addEventListener('click', () => selectAnswer(optKey, btn));
+                optionsContainer.appendChild(btn);
+            });
+
+            startQuestionTimer(); // reset timer to 60 s for each new question
+        }
+
+        // ── Answer handling ────────────────────────────────────────
+        function goToNextQuestion(playImmediately = false) {
+            if (missionSubmitted) return;
+            answeredQuestions += 1;
+            currentQuestionResolved = true;
+
+            if (currentIndex < questionsData.length - 1) {
+                currentIndex += 1;
+                renderQuestion(); // also resets timer
+            } else {
+                finishMission(playImmediately);
+            }
+        }
+
+        function selectAnswer(opt, selectedButton) {
+            if (missionSubmitted || currentQuestionResolved) return;
+
+            stopTimer(); // berhenti saat user menjawab
+
+            const currentQ = questionsData[currentIndex];
+            const isValid  = opt === currentQ.answer;
+            console.info('[DEBUG] misi_harian selectAnswer', {
+                question_id: currentQ.id,
+                selected_opt: opt,
+                correct_answer: currentQ.answer,
+                result: isValid
+            });
+
+            totalAttempts += 1;
+            attemptsEl.textContent = totalAttempts;
+
+            if (isValid) {
+                score += 1;
+                scoreEl.textContent = score;
+                selectedButton.style.backgroundColor = '#4caf50';
+                selectedButton.style.borderColor     = '#2e7d32';
+                selectedButton.style.color           = '#ffffff';
+                setFeedback('Benar! Lanjut ke soal berikutnya...', 'success');
+                disableOptions();
+                if (currentIndex === questionsData.length - 1) {
+                    goToNextQuestion(true);
+                    return;
+                }
+                setTimeout(goToNextQuestion, 650);
+                return;
+            }
+
+            attemptsOnCurrentQuestion += 1;
+            selectedButton.style.backgroundColor = '#ffcdd2';
+            selectedButton.style.borderColor     = '#d32f2f';
+
+            const sisaKesempatan = Math.max(0, 2 - attemptsOnCurrentQuestion);
+            if (attemptsOnCurrentQuestion < 2) {
+                setFeedback('Jawaban salah. Kesempatan tersisa: ' + sisaKesempatan + '.', 'warning');
+                // timer sudah berhenti; user boleh memilih lagi tanpa tekanan waktu
+                return;
+            }
+
+            setFeedback('Jawaban salah 2 kali. Otomatis lanjut ke soal berikutnya.', 'danger');
+            disableOptions();
+            setTimeout(goToNextQuestion, 750);
+        }
+
+        // ── Audio (hanya 1 kali, flag audioPlayed mencegah duplikasi) ─
+        function playMissionCompleteAudio() {
+            return new Promise((resolve) => {
+                if (audioPlayed) {
+                    resolve();
+                    return;
+                }
+                audioPlayed = true;
+
+                // Pop-up animasi tepuk tangan
+                showClapPopup();
+
+                // Putar audio selesai.mp3
+                if (selesaiMisiAudioEl) {
+                    selesaiMisiAudioEl.volume = 1;
+                    selesaiMisiAudioEl.muted = false;
+                    selesaiMisiAudioEl.currentTime = 0;
+                    
+                    // Listen for audio end event
+                    const onAudioEnd = () => {
+                        console.info('[Audio] selesai.mp3 playback finished');
+                        markAudioPlayed('completion');
+                        selesaiMisiAudioEl.removeEventListener('ended', onAudioEnd);
+                        resolve();
+                    };
+                    
+                    selesaiMisiAudioEl.addEventListener('ended', onAudioEnd);
+                    
+                    selesaiMisiAudioEl.play().then(() => {
+                        console.info('[Audio] selesai.mp3 playback started');
+                    }).catch((error) => {
+                        console.warn('[Audio] selesai.mp3 autoplay blocked or failed:', error);
+                        // If autoplay fails, still resolve after a timeout
+                        setTimeout(() => {
+                            markAudioPlayed('completion');
+                            resolve();
+                        }, 2000);
+                    });
+                    return;
+                }
+                
+                // Fallback if no audio element
+                setTimeout(() => {
+                    markAudioPlayed('completion');
+                    resolve();
+                }, 2000);
+            });
+        }
+
+        // Pop-up animasi tepuk tangan
+        function showClapPopup() {
+            // Cegah pop-up berulang
+            if (window.__clapPopupShown) return;
+            window.__clapPopupShown = true;
+            const popup = document.getElementById('clap-popup');
+            popup.style.display = 'flex';
+            // Lottie animasi tepuk tangan
+            if (window.lottie) {
+                window.lottie.loadAnimation({
+                    container: document.getElementById('clap-lottie'),
+                    renderer: 'svg',
+                    loop: true,
+                    autoplay: true,
+                    path: '/static/animations/clap.json'
+                });
+            }
+            // Durasi tampil 15 detik lalu otomatis menghilang
+            setTimeout(() => {
+                popup.style.display = 'none';
+                window.__clapPopupShown = false; // Reset flag agar bisa muncul lagi di misi berikutnya
+            }, 15000);
+        }
+
+        function playMissionCompleteAudioFallback() {
+            if (!missionCompleteAudioEl) {
+                console.error('[Audio] mission complete element not found');
+                showAudioNotification('Misi harian telah diselesaikan.', 'error');
+                return;
+            }
+
+            const supportsWav = missionCompleteAudioEl.canPlayType('audio/wav');
+            const supportsMpeg = missionCompleteAudioEl.canPlayType('audio/mpeg');
+            console.info('[Audio] capability mission-complete fallback', { supportsWav, supportsMpeg });
+            console.info('[Audio] attempt mission-complete playback (fallback)');
+            missionCompleteAudioEl.currentTime = 0;
+            missionCompleteAudioEl.play().then(() => {
+                console.info('[Audio] mission-complete playback success (fallback)');
+                markAudioPlayed('completion');
+            }).catch(() => {
+                console.warn('[Audio] mission-complete autoplay blocked or failed');
+                showAudioNotification('Misi harian telah diselesaikan.', 'info');
+                registerDeferredMissionAudioPlayback(() => {
+                    missionCompleteAudioEl.currentTime = 0;
+                    missionCompleteAudioEl.play().then(() => {
+                        console.info('[Audio] mission-complete playback success after interaction');
+                        markAudioPlayed('completion');
+                    }).catch(() => {
+                        console.warn('[Audio] mission-complete playback still failed, using speech fallback');
+                        speakFallback('Misi harian telah diselesaikan.', () => {
+                            markAudioPlayed('completion');
+                        });
+                        showAudioNotification('Misi harian telah diselesaikan.', 'error');
+                    });
+                }, 'Klik di mana saja untuk memutar audio misi selesai.');
+            });
+            return;
+        }
+
+        // ── Finish ─────────────────────────────────────────────────
+        function finishMission(playAudioImmediately = false) {
+            if (missionSubmitted) return;
+            missionSubmitted    = true;
+            isMissionCompleted  = true;
+            stopTimer();
+            disableOptions();
+            console.info('[Audio] finishMission called', { playAudioImmediately, answeredQuestions, totalQuestions: questionsData.length });
+
+            setFeedback('Misi selesai! 🎉 Mengarahkan ke menu...', 'success');
+
+            const submitMissionPromise = fetch("{{ url_for('main.misi_harian_submit') }}", {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    score,
+                    total_attempts: totalAttempts,
+                    answered_questions: answeredQuestions,
+                    total_questions: questionsData.length,
+                    question_ids: questionsData.map(item => item.id),
+                    timeout_reached: false
+                })
+            })
+            .then(async response => {
+                const body = await response.json().catch(() => null);
+                if (!response.ok) {
+                    console.error('[Mission] Submit failed with status:', response.status, body);
+                } else {
+                    console.info('[Mission] Submit successful', body);
+                }
+                return body;
+            })
+            .catch(error => {
+                console.error('[Mission] Submit error:', error);
+                return null;
+            });
+
+            // Play completion audio and redirect after both audio and submit are done.
+            playMissionCompleteAudio().then(() => {
+                Promise.allSettled([submitMissionPromise]).then(() => {
+                    console.info('[Mission] Audio finished and submit settled, redirecting to menu');
+                    setTimeout(() => {
+                        window.location.href = menuRedirectUrl + '?ts=' + Date.now();
+                    }, 500);
+                });
+            });
+        }
+
+        // ── Boot ───────────────────────────────────────────────────
+        if (!misiDone && questionsData && questionsData.length > 0) {
+            renderQuestion();
+        }
+    }
+
+    if (pageStateEl && pageStateEl.dataset.misiDone === 'true' && pageStateEl.dataset.playCompletionAudio === 'true') {
+        setTimeout(() => {
+            if (!pendingMissionAudioPlayback) {
+                playManagedCompletionFromPageState();
+            }
+        }, 200);
+    }
+
+    if (pageStateEl && pageStateEl.dataset.misiDone === 'true') {
+        setTimeout(() => {
+            window.location.href = menuRedirectUrl + '?ts=' + Date.now();
+        }, 3000);
+    }
+
+    function playManagedCompletionFromPageState() {
+        // Tampilkan pop-up tepuk tangan saat misi sudah selesai (halaman sudah selesai)
+        showClapPopup();
+
+        if (!missionCompleteAudioEl) {
+            console.error('[Audio] mission complete element not found on completed page');
+            showAudioNotification('Misi harian telah diselesaikan.', 'error');
+            return;
+        }
+
+        // Hentikan audio lain sebelum memainkan selesai.mp3
+        if (selesaiMisiAudioEl) {
+            selesaiMisiAudioEl.pause();
+            selesaiMisiAudioEl.currentTime = 0;
+        }
+        if (missionCompleteAudioEl) {
+            missionCompleteAudioEl.pause();
+            missionCompleteAudioEl.currentTime = 0;
+        }
+
+        // Coba putar selesai.mp3 dulu
+        if (selesaiMisiAudioEl) {
+            selesaiMisiAudioEl.volume = 1;
+            selesaiMisiAudioEl.muted = false;
+            selesaiMisiAudioEl.currentTime = 0;
+            selesaiMisiAudioEl.play().then(() => {
+                console.info('[Audio] selesai.mp3 playback success on completed page');
+                markAudioPlayed('completion');
+            }).catch(() => {
+                console.warn('[Audio] selesai.mp3 autoplay blocked on completed page, trying fallback');
+                playMissionCompleteAudioFallback();
+            });
+            return;
+        }
+
+        // Fallback ke mission-complete audio
+        missionCompleteAudioEl.currentTime = 0;
+        missionCompleteAudioEl.play().then(() => {
+            console.info('[Audio] mission-complete playback success on completed page');
+            markAudioPlayed('completion');
+        }).catch(() => {
+            console.warn('[Audio] mission-complete playback blocked on completed page');
+            registerDeferredMissionAudioPlayback(() => {
+                missionCompleteAudioEl.currentTime = 0;
+                missionCompleteAudioEl.play().then(() => {
+                    console.info('[Audio] mission-complete playback success after interaction on completed page');
+                    markAudioPlayed('completion');
+                }).catch(() => {
+                    speakFallback('Misi harian telah diselesaikan.', () => {
+                        markAudioPlayed('completion');
+                    });
+                    showAudioNotification('Misi harian telah diselesaikan.', 'error');
+                });
+            }, 'Klik di mana saja untuk memutar audio misi selesai.');
+        });
+    }
+</script>
+</body>
+
+</html>
