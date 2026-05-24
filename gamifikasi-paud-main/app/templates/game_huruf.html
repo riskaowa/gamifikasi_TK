@@ -437,8 +437,8 @@
         </div>
     </main>
 
-    <audio id="soundCorrect" src="{{ url_for('static', filename='audio/benar.mp3') }}" preload="auto"></audio>
-    <audio id="soundWrong" src="{{ url_for('static', filename='audio/salah.mp3') }}" preload="auto"></audio>
+    <audio id="soundCorrect" data-autostop="true" src="{{ url_for('static', filename='audio/benar.mp3') }}" preload="auto"></audio>
+    <audio id="soundWrong" data-autostop="true" src="{{ url_for('static', filename='audio/salah.mp3') }}" preload="auto"></audio>
 
     <script src="{{ url_for('static', filename='audio-helper.js') }}"></script>
     <script>
@@ -511,6 +511,64 @@
                     console.warn('[Audio] Error playing sound:', error);
                 }
             }
+        }
+
+        // Play audio and wait until it finishes (or a safe timeout) before resolving.
+        function playAndWait(audioElement, opts = {}) {
+            if (!audioElement) return Promise.resolve();
+            const { timeoutPadding = 300 } = opts;
+
+            stopAllOtherAudio();
+
+            return new Promise((resolve) => {
+                let ended = false;
+                const cleanup = () => {
+                    audioElement.removeEventListener('ended', onEnded);
+                    audioElement.removeEventListener('error', onError);
+                    if (timeoutId) clearTimeout(timeoutId);
+                };
+
+                const onEnded = () => {
+                    if (ended) return;
+                    ended = true;
+                    cleanup();
+                    resolve();
+                };
+
+                const onError = () => {
+                    if (ended) return;
+                    ended = true;
+                    cleanup();
+                    resolve();
+                };
+
+                audioElement.currentTime = 0;
+                audioElement.muted = false;
+
+                audioElement.addEventListener('ended', onEnded);
+                audioElement.addEventListener('error', onError);
+
+                try {
+                    if (window.AudioHelper && typeof AudioHelper.playSimple === 'function') {
+                        AudioHelper.playSimple(audioElement);
+                    } else {
+                        const p = audioElement.play();
+                        if (p && typeof p.then === 'function') {
+                            p.catch(() => {});
+                        }
+                    }
+                } catch (e) {
+                    // ignore
+                }
+
+                const duration = isFinite(audioElement.duration) && audioElement.duration > 0 ? Math.round(audioElement.duration * 1000) : 3000;
+                const timeoutId = setTimeout(() => {
+                    if (ended) return;
+                    ended = true;
+                    cleanup();
+                    resolve();
+                }, duration + timeoutPadding);
+            });
         }
 
         function speak(text) {
@@ -698,8 +756,11 @@
                 if (data.is_correct) {
                     clearTimer();
                     setFeedback('Jawaban Anda benar', 'ok');
-                    playSound(soundCorrect);
-                    // speak('Jawaban Anda benar'); // Disabled - only audio files should play
+                    if (soundCorrect) {
+                        try {
+                            await playAndWait(soundCorrect);
+                        } catch (e) {}
+                    }
 
                     correctAnswers += 1;
                     totalScore += Number(data.weight || 0);
@@ -715,13 +776,16 @@
                         status: 'sedang'
                     });
 
-                    setTimeout(() => nextQuestion(), 800);
+                    nextQuestion();
                     return;
                 }
 
                 wrongAttempts += 1;
-                playSound(soundWrong);
-                // speak('Silakan coba lagi'); // Disabled - only audio files should play
+                if (soundWrong) {
+                    try {
+                        await playAndWait(soundWrong);
+                    } catch (e) {}
+                }
 
                 if (wrongAttempts <= MAX_WRONG_ATTEMPTS && remainingTime > 0) {
                     setFeedback('Jawaban Anda salah, silakan coba lagi', 'error');
@@ -729,7 +793,7 @@
                     setChoicesEnabled(true);
                 } else {
                     setFeedback('Jawaban masih salah. Lanjut ke soal berikutnya.', 'error');
-                    setTimeout(() => nextQuestion(), 800);
+                    nextQuestion();
                 }
             } catch (error) {
                 setFeedback('Terjadi gangguan jaringan. Coba lagi.', 'error');

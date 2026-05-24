@@ -12,6 +12,7 @@ class Soal(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     kategori = db.Column('kategori', db.String(50), nullable=False, default='umum', index=True)
+    level = db.Column('level', db.Integer, nullable=False, default=1, index=True)
     pertanyaan = db.Column('pertanyaan', db.Text, nullable=False)
     pilihan_a = db.Column('pilihan_a', db.Text, nullable=False)
     pilihan_b = db.Column('pilihan_b', db.Text, nullable=False)
@@ -75,6 +76,9 @@ class Soal(db.Model):
             'option_image_b': self.image_option_b,
             'option_image_c': self.image_option_c,
             'option_image_d': self.image_option_d,
+            'level': self.level,
+            'pilihan_jawaban': [choice for choice in [self.pilihan_a, self.pilihan_b, self.pilihan_c, self.pilihan_d] if choice],
+            'gambar': self.image_question,
             # `answer` dipertahankan agar kompatibel dengan kode lama.
             'answer': self.answer_letter_to_key(answer_letter),
             'correct_answer': answer_letter,
@@ -83,6 +87,18 @@ class Soal(db.Model):
             'use_in_adventure_map': bool(self.use_in_adventure_map),
             'created_at': self.created_at.isoformat() if self.created_at else None
         }
+
+    @property
+    def pilihan_jawaban(self):
+        return [choice for choice in [self.pilihan_a, self.pilihan_b, self.pilihan_c, self.pilihan_d] if choice]
+
+    @property
+    def gambar(self):
+        return self.image_question
+
+    @property
+    def kategori_game(self):
+        return self.kategori
 
     # Backwards compatibility properties in case templates still use old field names.
     @property

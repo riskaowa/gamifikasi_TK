@@ -39,6 +39,7 @@ import string
 import html
 from urllib.parse import quote
 from datetime import date, datetime, timedelta, time
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 from sqlalchemy import case, func
 
 main = Blueprint('main', __name__)
@@ -1093,7 +1094,16 @@ def is_student_role(role):
 
 
 def is_now_in_access_window(now_dt=None):
-    now_dt = now_dt or datetime.now()
+    tz_name = current_app.config.get('APP_TZ', 'Asia/Jakarta')
+    if now_dt is None:
+        try:
+            now_dt = datetime.now(ZoneInfo(tz_name))
+        except ZoneInfoNotFoundError:
+            current_app.logger.warning(
+                'ZoneInfo not found for %s; falling back to local time. Install tzdata if running on Windows.',
+                tz_name,
+            )
+            now_dt = datetime.now()
     setting = get_access_time_setting(create_if_missing=True)
     start = setting.start_time if setting else DEFAULT_ACCESS_START
     end = setting.end_time if setting else DEFAULT_ACCESS_END
@@ -1705,6 +1715,16 @@ def get_daily_huruf_questions():
             item = selected[pointer]
             pointer += 1
 
+            override_data = session.get('huruf_game_question_overrides', {}).get(f"letter-{item['id']}")
+            if override_data:
+                item = item.copy()
+                item['prompt'] = override_data.get('prompt', item['prompt'])
+                item['display'] = override_data.get('display', item['display'])
+                item['options'] = override_data.get('options', item['options'])
+                item['answer'] = override_data.get('answer', item['answer'])
+                item['question_image'] = override_data.get('question_image')
+                item['option_images'] = override_data.get('option_images', {})
+
             options = list(item['options'])
             option_rng = random.Random(f"{today_seed}-{item['id']}")
             option_rng.shuffle(options)
@@ -1712,11 +1732,11 @@ def get_daily_huruf_questions():
             questions.append({
                 'question_id': f"letter-{item['id']}",
                 'display': item['display'],
-                'display_value': item['display'],
+                'display_value': item.get('display_value', item['display']),
                 'prompt': item['prompt'],
                 'options': options,
-                'option_images': {},
-                'question_image': None,
+                'option_images': item.get('option_images', {}),
+                'question_image': item.get('question_image'),
                 'answer': item['answer'],
                 'level': rule['level'],
                 'number_in_level': number_in_level,
@@ -2245,7 +2265,12 @@ def guru_dashboard():
     }
 
     all_materi = Materi.query.order_by(Materi.created_at.desc()).all()
+    selected_question_category = normalize_question_category(request.args.get('kelola_kategori', ''))
     question_bank_rows = Soal.query.order_by(Soal.created_at.desc(), Soal.id.desc()).all()
+    question_bank_rows_filtered = (
+        [row for row in question_bank_rows if row.kategori == selected_question_category]
+        if selected_question_category else question_bank_rows
+    )
     today = date.today()
 
     adventure_rules_by_game = {
@@ -2279,6 +2304,10 @@ def guru_dashboard():
             'question_label': (q.pertanyaan[:55] + '...') if q and q.pertanyaan and len(q.pertanyaan) > 55 else (q.pertanyaan if q else '-'),
             'set_by_teacher': bool(row.set_by_teacher),
         })
+
+    huruf_game_questions = get_daily_huruf_questions_public()
+    angka_game_questions = get_daily_angka_questions_public()
+    warna_bentuk_game_questions = get_daily_warna_bentuk_questions_public()
 
     question_usage_daily = {
         row.question_id
@@ -2351,6 +2380,25 @@ def guru_dashboard():
             'pemakaian': ' & '.join(pemakaian_parts),
         })
 
+    # Precompute preview URLs for images so templates can show the actual image resource
+    for row in question_bank_rows:
+        try:
+            row._image_preview = _build_static_image_url(row.image_question)
+        except Exception:
+            row._image_preview = None
+        try:
+            row._option_image_a = _build_static_image_url(row.image_option_a)
+        except Exception:
+            row._option_image_a = None
+        try:
+            row._option_image_b = _build_static_image_url(row.image_option_b)
+        except Exception:
+            row._option_image_b = None
+        try:
+            row._option_image_c = _build_static_image_url(row.image_option_c)
+        except Exception:
+            row._option_image_c = None
+
     return render_template(
         'guru_dashboard.html',
         students=student_data,
@@ -2367,10 +2415,15 @@ def guru_dashboard():
         teacher_notes=teacher_notes,
         account_management_users=account_management_users,
         all_materi=all_materi,
-        question_bank_rows=question_bank_rows,
+        question_bank_rows=question_bank_rows_filtered,
+        question_bank_rows_all=question_bank_rows,
+        selected_question_category=selected_question_category,
         question_categories=QUESTION_CATEGORIES,
         adventure_slots=adventure_slots,
         daily_mission_slots=daily_mission_slots,
+        huruf_game_questions=huruf_game_questions,
+        angka_game_questions=angka_game_questions,
+        warna_bentuk_game_questions=warna_bentuk_game_questions,
         soal_aktif=soal_aktif,
         today_date=today,
     )
@@ -2673,7 +2726,7 @@ def guru_tambah_bank_soal():
     return redirect(url_for('main.guru_dashboard') + '#tab-kelola-soal')
 
 
-@main.route('/guru-dashboard/bank-soal/edit/<int:question_id>', methods=['POST'])
+@main.route('/guru-dashboard/bank-soal/edit/<question_id>', methods=['POST'])
 @login_required
 def guru_edit_bank_soal(question_id):
     if current_user.role not in ['guru', 'admin']:
@@ -2682,28 +2735,133 @@ def guru_edit_bank_soal(question_id):
 
     source_tab = request.form.get('source_tab', 'kelola-soal')
     redirect_tab = source_tab if source_tab in ('kelola-soal', 'bank-soal', 'soal-aktif') else 'kelola-soal'
-    row = Soal.query.get_or_404(question_id)
+    wants_json = request.accept_mimetypes.accept_json or request.headers.get('X-Requested-With') == 'XMLHttpRequest'
 
-    kategori = normalize_question_category(request.form.get('kategori', row.kategori))
-    pertanyaan = request.form.get('pertanyaan', row.pertanyaan).strip() or row.pertanyaan
-    pilihan_a = request.form.get('pilihan_a', row.pilihan_a).strip() or row.pilihan_a
-    pilihan_b = request.form.get('pilihan_b', row.pilihan_b).strip() or row.pilihan_b
-    pilihan_c = request.form.get('pilihan_c', row.pilihan_c).strip() or row.pilihan_c
-    jawaban_benar = Soal.answer_key_to_letter(request.form.get('jawaban_benar', row.jawaban_benar))
+    def _json_error(message, status=400):
+        if wants_json:
+            return jsonify({'success': False, 'message': message}), status
+        flash(message, 'danger')
+        return redirect(url_for('main.guru_dashboard') + '#tab-' + redirect_tab)
+
+    row = None
+    if str(question_id).isdigit():
+        row = Soal.query.get(int(question_id))
+
+    is_huruf_game_item = False
+    if row is None:
+        huruf_item = find_huruf_question(question_id)
+        if huruf_item is None:
+            return _json_error('Soal tidak ditemukan.', 404)
+        is_huruf_game_item = True
+
+    kategori = normalize_question_category(request.form.get('kategori', row.kategori if row else 'huruf'))
+    pertanyaan = request.form.get('pertanyaan', huruf_item['prompt'] if is_huruf_game_item else row.pertanyaan).strip() or (huruf_item['prompt'] if is_huruf_game_item else row.pertanyaan)
+    pilihan_a = request.form.get('pilihan_a', huruf_item['options'][0] if is_huruf_game_item else row.pilihan_a).strip() or (huruf_item['options'][0] if is_huruf_game_item else row.pilihan_a)
+    pilihan_b = request.form.get('pilihan_b', huruf_item['options'][1] if is_huruf_game_item else row.pilihan_b).strip() or (huruf_item['options'][1] if is_huruf_game_item else row.pilihan_b)
+    pilihan_c = request.form.get('pilihan_c', huruf_item['options'][2] if is_huruf_game_item else row.pilihan_c).strip() or (huruf_item['options'][2] if is_huruf_game_item else row.pilihan_c)
+    pilihan_d = request.form.get('pilihan_d', huruf_item['options'][3] if is_huruf_game_item else '').strip() or (huruf_item['options'][3] if is_huruf_game_item else '')
+    display_value = request.form.get('display', huruf_item['display'] if is_huruf_game_item else '').strip() or (huruf_item['display'] if is_huruf_game_item else '')
+    jawaban_benar = request.form.get('jawaban_benar', huruf_item['answer'] if is_huruf_game_item else row.jawaban_benar).strip().upper()
+    if not is_huruf_game_item:
+        jawaban_benar = Soal.answer_key_to_letter(jawaban_benar)
 
     include_daily_mission = True
     include_adventure_map = True
 
     if not kategori:
-        flash('Kategori soal tidak valid.', 'danger')
-        return redirect(url_for('main.guru_dashboard') + '#tab-' + redirect_tab)
+        return _json_error('Kategori soal tidak valid.')
 
-    if jawaban_benar not in ['A', 'B', 'C']:
-        flash('Jawaban benar harus salah satu dari A/B/C.', 'danger')
-        return redirect(url_for('main.guru_dashboard') + '#tab-' + redirect_tab)
+    if is_huruf_game_item:
+        if not display_value:
+            return _json_error('Huruf tampilan untuk soal huruf tidak boleh kosong.')
+        if jawaban_benar not in ['A', 'B', 'C', 'D']:
+            return _json_error('Jawaban benar harus salah satu dari A/B/C/D.')
+    else:
+        if jawaban_benar not in ['A', 'B', 'C']:
+            return _json_error('Jawaban benar harus salah satu dari A/B/C.')
 
     if not (pilihan_a and pilihan_b and pilihan_c):
-        flash('Label opsi A, B, dan C tidak boleh kosong saat edit.', 'danger')
+        return _json_error('Label opsi A, B, dan C tidak boleh kosong saat edit.')
+    if is_huruf_game_item and not pilihan_d:
+        return _json_error('Label opsi D tidak boleh kosong untuk soal huruf.')
+
+    if is_huruf_game_item:
+        answer_letter = jawaban_benar.upper()
+        answer_map = {
+            'A': pilihan_a,
+            'B': pilihan_b,
+            'C': pilihan_c,
+            'D': pilihan_d,
+        }
+        answer_value = answer_map.get(answer_letter)
+        if not answer_value:
+            return _json_error('Jawaban benar tidak valid untuk soal huruf.')
+
+        overrides = session.get('huruf_game_question_overrides', {})
+        current_override = overrides.get(question_id, {})
+        question_image_path = current_override.get('question_image')
+        option_images = current_override.get('option_images', {})
+        previous_options = current_override.get('options', [])
+
+        try:
+            question_image_file = request.files.get('image_question_file')
+            option_a_image_file = request.files.get('image_option_a_file')
+            option_b_image_file = request.files.get('image_option_b_file')
+            option_c_image_file = request.files.get('image_option_c_file')
+            option_d_image_file = request.files.get('image_option_d_file')
+
+            if question_image_file and (question_image_file.filename or '').strip():
+                if question_image_path:
+                    _delete_question_image(question_image_path)
+                question_image_path = _save_question_image(question_image_file, 'question')
+
+            if option_a_image_file and (option_a_image_file.filename or '').strip():
+                if option_images.get(pilihan_a):
+                    _delete_question_image(option_images.get(pilihan_a))
+                option_images[pilihan_a] = _save_question_image(option_a_image_file, 'option_a')
+
+            if option_b_image_file and (option_b_image_file.filename or '').strip():
+                if option_images.get(pilihan_b):
+                    _delete_question_image(option_images.get(pilihan_b))
+                option_images[pilihan_b] = _save_question_image(option_b_image_file, 'option_b')
+
+            if option_c_image_file and (option_c_image_file.filename or '').strip():
+                if option_images.get(pilihan_c):
+                    _delete_question_image(option_images.get(pilihan_c))
+                option_images[pilihan_c] = _save_question_image(option_c_image_file, 'option_c')
+
+            if option_d_image_file and (option_d_image_file.filename or '').strip():
+                if option_images.get(pilihan_d):
+                    _delete_question_image(option_images.get(pilihan_d))
+                option_images[pilihan_d] = _save_question_image(option_d_image_file, 'option_d')
+        except ValueError as exc:
+            return _json_error(str(exc))
+
+        # Preserve option image references when the label texts change but no new file is uploaded.
+        if previous_options and option_images:
+            fallback_images = {}
+            new_labels = [pilihan_a, pilihan_b, pilihan_c, pilihan_d]
+            for index, label in enumerate(new_labels):
+                if index < len(previous_options):
+                    old_label = previous_options[index]
+                    if label and old_label and label not in option_images and old_label in option_images:
+                        fallback_images[label] = option_images[old_label]
+            option_images.update(fallback_images)
+
+        overrides[question_id] = {
+            'prompt': pertanyaan,
+            'display': display_value,
+            'options': [pilihan_a, pilihan_b, pilihan_c, pilihan_d],
+            'answer': answer_value,
+            'question_image': question_image_path,
+            'option_images': option_images,
+        }
+        session['huruf_game_question_overrides'] = overrides
+        session.modified = True
+
+        if wants_json:
+            return jsonify({'success': True, 'message': 'Soal huruf berhasil diperbarui.'})
+        flash('Soal huruf berhasil diperbarui.', 'success')
         return redirect(url_for('main.guru_dashboard') + '#tab-' + redirect_tab)
 
     try:
@@ -2732,8 +2890,7 @@ def guru_edit_bank_soal(question_id):
             _delete_question_image(row.image_option_c)
             row.image_option_c = new_path
     except ValueError as exc:
-        flash(str(exc), 'danger')
-        return redirect(url_for('main.guru_dashboard') + '#tab-' + redirect_tab)
+        return _json_error(str(exc))
 
     row.kategori = kategori
     row.pertanyaan = pertanyaan
@@ -2753,8 +2910,7 @@ def guru_edit_bank_soal(question_id):
         row.image_option_c,
     ]
     if any(not (img or '').strip() for img in required_images):
-        flash('Gambar soal dan gambar opsi A/B/C wajib tersedia setelah edit.', 'danger')
-        return redirect(url_for('main.guru_dashboard') + '#tab-' + redirect_tab)
+        return _json_error('Gambar soal dan gambar opsi A/B/C wajib tersedia setelah edit.')
 
     _set_question_usages(
         question_id=row.id,
@@ -2764,8 +2920,61 @@ def guru_edit_bank_soal(question_id):
     )
     db.session.commit()
 
+    if wants_json:
+        return jsonify({'success': True, 'message': 'Soal berhasil diperbarui.'})
+
     flash('Soal berhasil diperbarui.', 'success')
     return redirect(url_for('main.guru_dashboard') + '#tab-' + redirect_tab)
+
+
+@main.route('/guru-dashboard/peta-soal/hapus-angka/<question_id>', methods=['POST'])
+@login_required
+def guru_hapus_angka_game_question(question_id):
+    if current_user.role not in ['guru', 'admin']:
+        return jsonify({'success': False, 'message': 'Akses ditolak.'}), 403
+
+    if not question_id.startswith('db-'):
+        return jsonify({'success': False, 'message': 'ID soal angka tidak valid.'}), 400
+
+    parts = question_id.split('-')
+    if len(parts) < 3 or not parts[1].isdigit():
+        return jsonify({'success': False, 'message': 'ID soal angka tidak valid.'}), 400
+
+    row_id = int(parts[1])
+    slots = AdventureQuestionMap.query.filter_by(game_key='angka', question_id=row_id).all()
+    if not slots:
+        return jsonify({'success': False, 'message': 'Soal angka tidak ditemukan di game hari ini.'}), 404
+
+    for slot in slots:
+        slot.question_id = None
+
+    db.session.commit()
+    return jsonify({'success': True, 'message': 'Soal angka berhasil dihapus dari game hari ini.'})
+
+
+@main.route('/guru-dashboard/peta-soal/hapus-warna/<question_id>', methods=['POST'])
+@login_required
+def guru_hapus_warna_game_question(question_id):
+    if current_user.role not in ['guru', 'admin']:
+        return jsonify({'success': False, 'message': 'Akses ditolak.'}), 403
+
+    if not question_id.startswith('db-'):
+        return jsonify({'success': False, 'message': 'ID soal tidak valid.'}), 400
+
+    parts = question_id.split('-')
+    if len(parts) < 3 or not parts[1].isdigit():
+        return jsonify({'success': False, 'message': 'ID soal tidak valid.'}), 400
+
+    row_id = int(parts[1])
+    slots = AdventureQuestionMap.query.filter_by(game_key='warna', question_id=row_id).all()
+    if not slots:
+        return jsonify({'success': False, 'message': 'Soal tidak ditemukan di game hari ini.'}), 404
+
+    for slot in slots:
+        slot.question_id = None
+
+    db.session.commit()
+    return jsonify({'success': True, 'message': 'Soal berhasil dihapus dari game Warna/Bentuk hari ini.'})
 
 
 @main.route('/guru-dashboard/bank-soal/hapus/<int:question_id>', methods=['POST'])

@@ -243,7 +243,13 @@
 
             const playAdventureAudio = () => {
                 if (window.AudioHelper) {
-                    AudioHelper.playOncePerDay(audioEl, 'petaAudioPlayedToday', {
+                    AudioHelper.playAudio(audioEl, {
+                        volume: 1.0,
+                        loop: false,
+                        onSuccess: () => {
+                            hideAudioFallback();
+                            console.log('[Audio] bermain.mp3 autoplay berhasil');
+                        },
                         onError: (err) => {
                             console.warn('[Audio] Autoplay blocked for petualangan audio:', err);
                             showAudioFallback();
