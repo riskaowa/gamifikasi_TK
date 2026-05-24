@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Orang Tua - Gamifikasi PAUD</title>
+    <style>
+        * { box-sizing: border-box; }
+        :root {
+            --bg: #f4f8ff;
+            --card: #ffffff;
+            --ink: #1e2b4a;
+            --muted: #60729a;
+            --line: #d8e2f3;
+            --accent: #1f4e8f;
+            --accent-soft: #e8f1ff;
+            --highlight: #e6f7ea;
+            --highlight-line: #9ad1a5;
+        }
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            color: var(--ink);
+            background:
+                radial-gradient(circle at 8% 5%, #dcecff 0%, transparent 38%),
+                radial-gradient(circle at 93% 92%, #e2f5ff 0%, transparent 35%),
+                var(--bg);
+            min-height: 100vh;
+        }
+        .wrapper {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 24px 14px 36px;
+        }
+        .topbar {
+            background: var(--card);
+            border: 1.5px solid var(--line);
+            border-radius: 14px;
+            box-shadow: 0 8px 24px rgba(31, 78, 143, 0.08);
+            padding: 14px 18px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+        .title {
+            margin: 0;
+            color: var(--accent);
+            font-size: 1.35rem;
+        }
+        .subtitle {
+            margin: 4px 0 0;
+            color: var(--muted);
+            font-size: 0.9rem;
+        }
+        .logout-btn {
+            text-decoration: none;
+            border: 1.5px solid #db4b4b;
+            color: #db4b4b;
+            padding: 8px 14px;
+            border-radius: 10px;
+            font-weight: 700;
+            background: #fff;
+        }
+        .logout-btn:hover {
+            background: #db4b4b;
+            color: #fff;
+        }
+        .section {
+            background: var(--card);
+            border: 1.5px solid var(--line);
+            border-radius: 14px;
+            box-shadow: 0 8px 24px rgba(31, 78, 143, 0.06);
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+        .section h2 {
+            margin: 0 0 6px;
+            font-size: 1.1rem;
+            color: var(--accent);
+        }
+        .section p {
+            margin: 0 0 12px;
+            color: var(--muted);
+            font-size: 0.9rem;
+        }
+        .chip-wrap {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin: 6px 0 14px;
+        }
+        .chip {
+            background: var(--accent-soft);
+            color: var(--accent);
+            padding: 6px 10px;
+            border-radius: 999px;
+            font-weight: 700;
+            font-size: 0.82rem;
+            border: 1px solid #bfd4fb;
+        }
+        .child-progress-shell {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            border-radius: 16px;
+            border: 1.5px solid var(--line);
+            padding: 16px;
+            margin-bottom: 12px;
+            box-shadow: 0 12px 24px rgba(31, 78, 143, 0.06);
+        }
+        .child-progress-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 12px;
+            margin-bottom: 14px;
+        }
+        .child-progress-title {
+            margin: 0;
+            color: #2c3e50;
+            font-size: 1.1rem;
+            font-family: 'Fredoka One', cursive;
+        }
+        .child-progress-subtitle {
+            margin: 4px 0 0;
+            color: #7f8c8d;
+            font-size: 0.86rem;
+        }
+        .child-progress-date {
+            background: #eef3ff;
+            color: #1f4e8f;
+            border: 1px solid #bfd4fb;
+            border-radius: 999px;
+            padding: 6px 10px;
+            font-size: 0.76rem;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+        .child-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+        .child-stat-card {
+            color: white;
+            padding: 14px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        .child-stat-card:nth-child(1) { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .child-stat-card:nth-child(2) { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+        .child-stat-card:nth-child(3) { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+        .child-stat-card:nth-child(4) { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
+        .child-stat-value {
+            font-family: 'Fredoka One', cursive;
+            font-size: 1.7rem;
+            margin: 8px 0;
+        }
+        .child-stat-label {
+            font-size: 0.74rem;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            opacity: 0.95;
+        }
+        .child-progress-section {
+            background: #f8f9fa;
+            padding: 14px;
+            border-radius: 12px;
+            margin-bottom: 10px;
+        }
+        .child-progress-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            padding: 12px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+        .child-progress-item:last-child { margin-bottom: 0; }
+        .child-progress-item-label {
+            flex: 1;
+            color: #2c3e50;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+        .child-progress-bar-container {
+            flex: 2;
+            background: #e0e0e0;
+            height: 20px;
+            border-radius: 10px;
+            margin: 0 12px;
+            overflow: hidden;
+            position: relative;
+        }
+        .child-progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.72rem;
+            font-weight: bold;
+            min-width: 30px;
+            width: 0;
+            transition: width 0.5s ease;
+        }
+        .child-progress-percentage {
+            color: #667eea;
+            font-weight: bold;
+            min-width: 40px;
+            text-align: right;
+            font-size: 0.85rem;
+        }
+        .child-mission-meta {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+            gap: 8px;
+        }
+        .child-meta-card {
+            border: 1px solid var(--line);
+            background: #fff;
+            border-radius: 10px;
+            padding: 10px;
+        }
+        .child-meta-label {
+            font-size: 0.74rem;
+            color: var(--muted);
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+        .child-meta-value {
+            font-size: 0.95rem;
+            color: var(--ink);
+            font-weight: 800;
+        }
+        .player-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 12px;
+        }
+        .player-card {
+            border: 1.5px solid var(--line);
+            border-radius: 12px;
+            padding: 12px;
+            background: linear-gradient(160deg, #ffffff 0%, #f5f9ff 100%);
+        }
+        .player-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+        .player-name {
+            font-size: 1rem;
+            font-weight: 800;
+            color: var(--accent);
+        }
+        .player-meta {
+            font-size: 0.82rem;
+            color: var(--muted);
+            margin-top: 2px;
+        }
+        .player-rank {
+            border: 1px solid #bfd4fb;
+            background: var(--accent-soft);
+            color: var(--accent);
+            border-radius: 999px;
+            padding: 5px 10px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+        .player-stats {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 8px;
+        }
+        .stat-pill {
+            border: 1px solid #dbe5f8;
+            border-radius: 10px;
+            padding: 8px 9px;
+            background: #fff;
+        }
+        .stat-pill-label {
+            font-size: 0.75rem;
+            color: var(--muted);
+            font-weight: 700;
+            margin-bottom: 3px;
+        }
+        .stat-pill-value {
+            font-size: 1rem;
+            color: var(--ink);
+            font-weight: 800;
+            line-height: 1.15;
+        }
+        .table-wrap {
+            overflow-x: auto;
+            border: 1px solid var(--line);
+            border-radius: 12px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 580px;
+        }
+        thead th {
+            background: var(--accent);
+            color: #fff;
+            text-align: left;
+            padding: 10px 12px;
+            font-size: 0.85rem;
+        }
+        tbody td {
+            padding: 10px 12px;
+            border-top: 1px solid var(--line);
+            font-size: 0.9rem;
+        }
+        tbody tr:nth-child(even) { background: #f8fbff; }
+        tbody tr.highlight {
+            background: var(--highlight) !important;
+            outline: 1px solid var(--highlight-line);
+            font-weight: 700;
+        }
+        .rank-badge {
+            display: inline-block;
+            min-width: 36px;
+            text-align: center;
+            border-radius: 999px;
+            background: #eef3ff;
+            color: var(--accent);
+            padding: 4px 8px;
+            font-weight: 700;
+        }
+        .note-card {
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 10px;
+            background: #fff;
+        }
+        .note-meta {
+            font-size: 0.8rem;
+            color: var(--muted);
+            margin-bottom: 6px;
+            font-weight: 700;
+        }
+        .note-body {
+            font-size: 0.92rem;
+            line-height: 1.5;
+            white-space: pre-wrap;
+        }
+        .empty {
+            border: 1px dashed #bccbe3;
+            background: #f8fbff;
+            border-radius: 10px;
+            padding: 12px;
+            color: #6b7ca3;
+            font-size: 0.9rem;
+        }
+        @media (max-width: 640px) {
+            .topbar {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .logout-btn {
+                align-self: stretch;
+                text-align: center;
+            }
+            .wrapper {
+                padding: 12px 10px 28px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="wrapper">
+        <div class="topbar">
+            <div>
+                <h1 class="title">Dashboard Orang Tua</h1>
+                <p class="subtitle">Halo, {{ current_user.name }}. Pantau posisi peringkat dan catatan guru untuk anak Anda.</p>
+            </div>
+            <a href="{{ url_for('main.logout') }}" class="logout-btn">Keluar</a>
+        </div>
+
+        <section class="section">
+            <h2>Progres Harian Anak</h2>
+            <p>Tampilan di bawah menggunakan pola progres harian yang sama seperti akun murid, namun difilter otomatis hanya untuk anak yang terhubung.</p>
+
+            {% if child_daily_progress %}
+                {% for item in child_daily_progress %}
+                <div class="child-progress-shell">
+                    <div class="child-progress-header">
+                        <div>
+                            <h3 class="child-progress-title">Progres Harian {{ item.child_name }}</h3>
+                            <p class="child-progress-subtitle">@{{ item.child_username }}</p>
+                        </div>
+                        <div class="child-progress-date">{{ item.today_date.strftime('%d-%m-%Y') if item.today_date else '-' }}</div>
+                    </div>
+
+                    <div class="child-stats-grid">
+                        <div class="child-stat-card">
+                            <div class="child-stat-label">Total Bintang</div>
+                            <div class="child-stat-value">{{ item.total_stars }}</div>
+                        </div>
+                        <div class="child-stat-card">
+                            <div class="child-stat-label">Level Saat Ini</div>
+                            <div class="child-stat-value">{{ item.level }}</div>
+                        </div>
+                        <div class="child-stat-card">
+                            <div class="child-stat-label">Game Terselesaikan</div>
+                            <div class="child-stat-value">{{ item.games_completed }}</div>
+                        </div>
+                        <div class="child-stat-card">
+                            <div class="child-stat-label">Sertifikat</div>
+                            <div class="child-stat-value">{{ item.certificates_count }}</div>
+                        </div>
+                    </div>
+
+                    <div class="child-progress-section">
+                        {% for progress in item.daily_progress %}
+                        <div class="child-progress-item">
+                            <div class="child-progress-item-label">{{ progress.materi_name }}</div>
+                            <div class="child-progress-bar-container">
+                                <div class="child-progress-bar" data-progress="{{ progress.percentage }}"></div>
+                            </div>
+                            <div class="child-progress-percentage">{{ progress.percentage }}%</div>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="child-mission-meta">
+                        <div class="child-meta-card">
+                            <div class="child-meta-label">Status Misi Harian</div>
+                            <div class="child-meta-value">{{ item.mission_status }}</div>
+                        </div>
+                        <div class="child-meta-card">
+                            <div class="child-meta-label">Waktu Penyelesaian</div>
+                            <div class="child-meta-value">{{ item.mission_completed_at.strftime('%d-%m-%Y %H:%M') if item.mission_completed_at else '-' }}</div>
+                        </div>
+                        <div class="child-meta-card">
+                            <div class="child-meta-label">Total Progres Hari Ini</div>
+                            <div class="child-meta-value">{{ item.total_progress_today }}%</div>
+                        </div>
+                        <div class="child-meta-card">
+                            <div class="child-meta-label">Reward / Poin Hari Ini</div>
+                            <div class="child-meta-value">{{ item.mission_reward }} XP ({{ item.mission_xp }} + bonus {{ item.mission_bonus }})</div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+            <div class="empty">Belum ada anak yang terhubung atau data progres harian belum tersedia.</div>
+            {% endif %}
+        </section>
+
+        <section class="section">
+            <h2>Profil Anak</h2>
+            <p>Ringkasan progres, skor, aktivitas game, dan posisi leaderboard khusus untuk anak yang terhubung.</p>
+
+            {% if child_profiles %}
+            <div class="player-grid">
+                {% for child in child_profiles %}
+                <article class="player-card">
+                    <div class="player-head">
+                        <div>
+                            <div class="player-name">{{ child.name }}</div>
+                            <div class="player-meta">@{{ child.username }} · Kelas {{ child.kelas }}</div>
+                        </div>
+                        <div class="player-rank">
+                            {% if child.rank %}
+                                Rank #{{ child.rank }}
+                            {% else %}
+                                Belum masuk rank
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="player-stats">
+                        <div class="stat-pill">
+                            <div class="stat-pill-label">Total Skor</div>
+                            <div class="stat-pill-value">{{ child.total_score }}</div>
+                        </div>
+                        <div class="stat-pill">
+                            <div class="stat-pill-label">Level · XP</div>
+                            <div class="stat-pill-value">Lv {{ child.level }} · {{ child.xp }} XP</div>
+                        </div>
+                        <div class="stat-pill">
+                            <div class="stat-pill-label">Progress Belajar</div>
+                            <div class="stat-pill-value">{{ child.progress_done }}/{{ child.progress_total }} ({{ child.progress_pct }}%)</div>
+                        </div>
+                        <div class="stat-pill">
+                            <div class="stat-pill-label">Aktivitas Game</div>
+                            <div class="stat-pill-value">{{ child.games_played }} kali main</div>
+                        </div>
+                    </div>
+
+                    <div class="player-meta" style="margin-top:8px;">
+                        Aktivitas terakhir:
+                        {% if child.last_played_at %}
+                            {{ child.last_played_at.strftime('%d-%m-%Y %H:%M') }}
+                        {% else %}
+                            Belum ada aktivitas game.
+                        {% endif %}
+                    </div>
+                </article>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="empty">Belum ada profil anak yang bisa ditampilkan. Pastikan guru sudah menghubungkan akun orang tua dengan murid.</div>
+            {% endif %}
+        </section>
+
+        <section class="section">
+            <h2>Papan Peringkat</h2>
+            <p>Urutan ditampilkan berdasarkan total poin tertinggi ke terendah. Baris anak Anda diberi highlight hijau agar mudah dipantau.</p>
+
+            {% if children %}
+            <div class="chip-wrap">
+                {% for child in children %}
+                <span class="chip">{{ child.name }} ({{ child.username }})</span>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="empty" style="margin-bottom:12px;">Belum ada anak yang terhubung ke akun orang tua ini. Silakan hubungi guru untuk mengatur relasi orang tua dan murid.</div>
+            {% endif %}
+
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Peringkat</th>
+                            <th>Nama Siswa</th>
+                            <th>Total Poin</th>
+                            <th>Game Selesai</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for row in leaderboard %}
+                        <tr class="{% if row.user_id in child_ids %}highlight{% endif %}">
+                            <td><span class="rank-badge">#{{ row.rank }}</span></td>
+                            <td>{{ row.name }}</td>
+                            <td>{{ row.total_score }}</td>
+                            <td>{{ row.games_completed }}</td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="4" style="text-align:center;color:#7a8aad;">Belum ada data leaderboard.</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>Catatan Guru</h2>
+            <p>Catatan ini hanya dapat dilihat oleh orang tua, dan tidak dapat diedit dari halaman ini.</p>
+
+            {% for item in teacher_notes %}
+            <article class="note-card">
+                <div class="note-meta">
+                    Guru: {{ item.teacher_name }} | Murid: {{ item.student_name }} | {{ item.created_at.strftime('%d-%m-%Y %H:%M') if item.created_at else '-' }}
+                </div>
+                <div class="note-body">{{ item.note }}</div>
+            </article>
+            {% else %}
+            <div class="empty">Belum ada catatan dari guru.</div>
+            {% endfor %}
+        </section>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.child-progress-bar[data-progress]').forEach(function(el) {
+                var percent = Number(el.dataset.progress) || 0;
+                el.style.width = percent + '%';
+                if (percent > 10) {
+                    el.textContent = percent + '%';
+                }
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Gamifikasi PAUD</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='gamification.css') }}">
+    <style>
+        body.login-body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: url("{{ url_for('static', filename='images/bg.png') }}") no-repeat center center / cover;
+            background-attachment: fixed;
+            font-family: 'Bubblegum Sans', cursive;
+        }
+
+        .login-card {
+            width: min(420px, 90vw);
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            border-radius: 20px;
+            box-shadow: 0 18px 40px rgba(0, 0, 0, 0.18);
+            border: 3px solid rgba(184, 216, 255, 0.7);
+            padding: 20px;
+        }
+
+        .login-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .login-head .logo {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 800;
+            color: #1f407a;
+            font-size: 1rem;
+            text-decoration: none;
+        }
+
+        .login-head .back-link {
+            font-size: 0.95rem;
+            color: #1f407a;
+            text-decoration: none;
+            font-weight: 700;
+        }
+
+        .tab-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .tab-buttons button {
+            padding: 10px 12px;
+            font-weight: 800;
+            border: 2px solid #1f407a;
+            background: #f7faff;
+            color: #1f407a;
+            border-radius: 12px;
+            cursor: pointer;
+        }
+
+        .tab-buttons button.active {
+            background: #1f407a;
+            color: #fff;
+        }
+
+        .login-title {
+            text-align: center;
+            margin: 10px 0 16px;
+            color: #1f407a;
+            font-size: 1.7rem;
+        }
+
+        .login-form {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .login-form label {
+            font-size: 0.95rem;
+            color: #1f407a;
+            font-weight: 700;
+        }
+
+        .login-form input,
+        .login-form select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 2px solid #a7c7f5;
+            border-radius: 10px;
+            font-size: 1rem;
+        }
+
+        .login-form input:focus,
+        .login-form select:focus {
+            border-color: #1f407a;
+            outline: none;
+            box-shadow: 0 0 8px rgba(31, 64, 122, 0.3);
+        }
+
+        .login-form button {
+            margin-top: 10px;
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 12px;
+            background: #1f407a;
+            color: #fff;
+            font-size: 1rem;
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        .login-form button:hover {
+            background: #1a3568;
+        }
+
+        .login-footer {
+            text-align: center;
+            margin-top: 12px;
+            color: #1f407a;
+            font-size: 0.95rem;
+        }
+
+        .login-footer a {
+            color: #1f407a;
+            font-weight: 800;
+            text-decoration: none;
+        }
+
+        .alert {
+            text-align: center;
+            margin-bottom: 12px;
+        }
+    </style>
+</head>
+
+<body class="login-body">
+    <div class="login-card">
+        <div class="login-head">
+            <a class="login-head-logo logo" href="{{ url_for('main.index') }}">🏫 GAMIFIKASI PAUD</a>
+            <a class="back-link" href="{{ url_for('main.index') }}">&lt; Kembali Ke Halaman Utama</a>
+        </div>
+
+        <div class="tab-buttons">
+            <button class="active" type="button">Masuk</button>
+            <button type="button" disabled style="opacity:.5;cursor:not-allowed;">Registrasi oleh Guru/Admin</button>
+        </div>
+
+        <h2 class="login-title">Selamat Datang</h2>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for category, message in messages %}
+        <div class="alert alert-{{ category }}">{{ message }}</div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+
+        <form action="{{ url_for('main.login') }}" method="post" class="login-form">
+            <div>
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" placeholder="Username" required>
+            </div>
+            <div>
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" placeholder="Password" required>
+            </div>
+            <div>
+                <label for="role">Role</label>
+                <select id="role" name="role">
+                    <option value="">Pilih</option>
+                    <option value="murid">Murid</option>
+                    <option value="guru">Guru</option>
+                    <option value="orangtua">Orang Tua</option>
+                </select>
+                <small style="display:block; margin-top:6px; color:#555;">Role tidak wajib, cukup masukkan username dan password.</small>
+            </div>
+            <button type="submit">Masuk</button>
+        </form>
+
+        <div class="login-footer">
+            Belum punya akun? Silakan hubungi Guru/Admin untuk didaftarkan.
+        </div>
+    </div>
+
+</body>
+
+</html>

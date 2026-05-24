@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Akses Ditolak - Gamifikasi PAUD</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='gamification.css') }}">
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Arial', sans-serif;
+            background: url("{{ url_for('static', filename='images/bg.png') }}") no-repeat center center / cover;
+            background-attachment: fixed;
+            color: #2a2a2a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .access-denied-container {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            max-width: 500px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .access-denied-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+        }
+
+        .access-denied-title {
+            font-size: 2rem;
+            color: #e74c3c;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        .access-denied-message {
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        .access-time-info {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 4px solid #007bff;
+        }
+
+        .access-time-info h3 {
+            margin: 0 0 10px 0;
+            color: #007bff;
+            font-size: 1.2rem;
+        }
+
+        .access-time-info p {
+            margin: 5px 0;
+            font-weight: 500;
+        }
+
+        .btn-back {
+            display: inline-block;
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 10px;
+            font-weight: bold;
+            transition: transform 0.2s;
+            margin-top: 20px;
+        }
+
+        .btn-back:hover {
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <div class="access-denied-container">
+        <div class="access-denied-icon">⏰</div>
+        <h1 class="access-denied-title">Akses Menu Ditolak</h1>
+        <p class="access-denied-message">
+            Maaf, saat ini menu utama belum dapat diakses. Menu hanya tersedia pada jam tertentu yang telah ditentukan oleh guru.
+        </p>
+
+        <div class="access-time-info">
+            <h3>🕐 Jadwal Akses Menu</h3>
+            <p><strong>Jam Mulai:</strong> {{ start_time }}</p>
+            <p><strong>Jam Selesai:</strong> {{ end_time }}</p>
+            <p><em>Silakan coba lagi pada waktu yang telah ditentukan.</em></p>
+        </div>
+
+        <a href="{{ url_for('main.login') }}" class="btn-back">← Kembali ke Login</a>
+    </div>
+</body>
+</html>

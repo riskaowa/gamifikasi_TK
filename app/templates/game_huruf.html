@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Game Mengenal Huruf - Gamifikasi PAUD</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='gamification.css') }}" />
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Inter', Arial, sans-serif;
+            background: linear-gradient(180deg, #dbe7ff 0%, #f0f7ff 55%, #fff 100%);
+            color: #1a2b4a;
+        }
+
+        .game-page {
+            width: min(980px, 96%);
+            margin: 28px auto 36px;
+            padding: 0 4px;
+        }
+
+        .game-title {
+            text-align: center;
+            font-size: clamp(2rem, 2.4vw, 2.7rem);
+            margin: 0;
+            color: #0e3970;
+            font-weight: 800;
+            letter-spacing: 0.03em;
+        }
+
+        .game-subtitle {
+            text-align: center;
+            margin: 10px auto 20px;
+            color: #344f7e;
+            font-size: 1rem;
+            max-width: 760px;
+            line-height: 1.5;
+            opacity: 0.88;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.94);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-radius: 30px;
+            border: 1px solid rgba(45, 119, 255, 0.15);
+            box-shadow: 0 24px 72px rgba(14, 44, 100, 0.18);
+            padding: 28px;
+        }
+
+        .hud {
+            display: grid;
+            grid-template-columns: repeat(5, minmax(0, 1fr));
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .hud-box {
+            background: #f4f9ff;
+            border: 1px solid #dbe9ff;
+            border-radius: 18px;
+            padding: 14px 12px;
+            text-align: center;
+            font-weight: 800;
+            color: #1d4d81;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+        }
+
+        .letter-stage {
+            border: 1px solid rgba(29, 86, 171, 0.14);
+            border-radius: 26px;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.95), #f7faff 100%);
+            padding: 32px 24px;
+            text-align: center;
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.8);
+        }
+
+        .question-title {
+            margin: 0 0 14px;
+            font-weight: 800;
+            color: #1f4c81;
+            font-size: 1.15rem;
+            letter-spacing: 0.02em;
+        }
+
+        .big-letter {
+            font-size: clamp(4.4rem, 6vw, 6rem);
+            line-height: 1;
+            font-weight: 900;
+            color: #183c74;
+            margin: 0 auto 16px;
+            min-height: 140px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 28px;
+            width: min(240px, 55vw);
+            max-width: 100%;
+            background: linear-gradient(180deg, #eef5ff 0%, #ffffff 100%);
+            border: 1px solid #d7e4fb;
+            box-shadow: inset 0 18px 30px rgba(17, 68, 144, 0.06);
+            margin-bottom: 8px;
+        }
+
+        .question-visual {
+            width: min(280px, 74vw);
+            height: auto;
+            border-radius: 16px;
+            border: 1px solid #d2e1f7;
+            background: #f5faff;
+            padding: 10px;
+        }
+
+        .choice-btn.choice-visual {
+            background: #f6f9ff;
+            color: #1f4f8a;
+            border: 1px solid #c8d8f6;
+            min-height: 128px;
+            padding: 12px;
+        }
+
+        .choice-option-wrap {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .choice-option-wrap img {
+            width: 100%;
+            max-width: 100px;
+            height: 74px;
+            object-fit: contain;
+            border-radius: 14px;
+            background: #fff;
+            border: 1px solid #dbe7f5;
+            padding: 6px;
+        }
+
+        .choice-caption {
+            font-size: 0.88rem;
+            color: #1f4f8a;
+        }
+
+        .choices {
+            margin-top: 24px;
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 16px;
+        }
+
+        .choice-btn {
+            border: 0;
+            border-radius: 18px;
+            padding: 18px 16px;
+            font-size: 1.05rem;
+            font-weight: 700;
+            cursor: pointer;
+            background: linear-gradient(135deg, #1d74d6 0%, #3177ff 100%);
+            color: #fff;
+            transition: transform 0.18s ease, box-shadow 0.18s ease, opacity 0.18s ease;
+            min-height: 64px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-transform: uppercase;
+            letter-spacing: 0.01em;
+        }
+
+        .choice-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 18px 40px rgba(44, 101, 201, 0.18);
+        }
+
+        .choice-btn:active:not(:disabled) {
+            transform: translateY(0);
+        }
+
+        .choice-btn:disabled {
+            opacity: 0.65;
+            cursor: not-allowed;
+        }
+
+        .feedback {
+            margin-top: 18px;
+            min-height: 24px;
+            text-align: center;
+            font-size: 1.06rem;
+            font-weight: 700;
+        }
+
+        .feedback.ok {
+            color: #137333;
+        }
+
+        .feedback.error {
+            color: #b42318;
+        }
+
+        .game-actions {
+            margin-top: 26px;
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            border: 0;
+            border-radius: 999px;
+            padding: 14px 24px;
+            font-weight: 700;
+            font-size: 0.98rem;
+            text-decoration: none;
+            color: #fff;
+            cursor: pointer;
+            background: linear-gradient(135deg, #1d5ab5 0%, #285fb8 100%);
+            box-shadow: 0 14px 30px rgba(31, 88, 162, 0.18);
+            transition: transform 0.18s ease, background 0.18s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+            background: linear-gradient(135deg, #174b8f 0%, #1f5a9f 100%);
+        }
+
+        .btn-neutral {
+            background: linear-gradient(135deg, #3b6fae 0%, #285b92 100%);
+        }
+
+        .btn-neutral:hover {
+            background: linear-gradient(135deg, #254b80 0%, #1f4f82 100%);
+        }
+
+        .status-text {
+            margin-top: 14px;
+            text-align: center;
+            color: #2c4b78;
+            font-weight: 700;
+        }
+
+        .game-end-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(12, 31, 61, 0.68);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 18px;
+        }
+
+        .game-end-overlay.active {
+            display: flex;
+        }
+
+        .game-end-card {
+            width: min(580px, 100%);
+            background: #ffffff;
+            border-radius: 26px;
+            box-shadow: 0 24px 56px rgba(12, 42, 98, 0.24);
+            border: 1px solid rgba(74, 106, 169, 0.16);
+            text-align: center;
+            padding: 26px 22px 22px;
+            position: relative;
+        }
+
+        .game-end-card h2 {
+            margin: 0 0 12px;
+            font-size: 2rem;
+            color: #0e3c72;
+        }
+
+        .game-end-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin: 12px auto 18px;
+            padding: 14px 18px;
+            border-radius: 20px;
+            background: #eef4ff;
+            color: #0e3c72;
+            max-width: min(100%, 440px);
+        }
+
+        .game-end-badge-icon {
+            font-size: 2rem;
+            padding: 14px;
+            border-radius: 50%;
+            background: #fff;
+            border: 2px solid #c9d7f5;
+            min-width: 72px;
+            min-height: 72px;
+            display: grid;
+            place-items: center;
+        }
+
+        .game-end-badge-info {
+            text-align: left;
+            line-height: 1.25;
+        }
+
+        .game-end-badge-title {
+            font-size: 1.15rem;
+            font-weight: 800;
+        }
+
+        .game-end-badge-description {
+            font-size: 0.95rem;
+            opacity: 0.9;
+        }
+
+        .game-end-stars {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 10px 0 18px;
+        }
+
+        .game-end-star {
+            width: 58px;
+            height: 58px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: #f5f7ff;
+            border-radius: 50%;
+            border: 2px solid #d7e2f8;
+            color: #f5b631;
+            font-size: 1.6rem;
+        }
+
+        .game-end-star.inactive {
+            color: #b4c2dd;
+            background: #f7f8fc;
+            border-color: #d8e1ef;
+        }
+
+        .game-end-text {
+            margin: 0 0 18px;
+            color: #163754;
+            font-size: 1.08rem;
+            font-weight: 700;
+        }
+
+        .game-end-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 12px;
+        }
+
+        .game-end-buttons .btn {
+            min-width: 120px;
+        }
+
+        @media (max-width: 860px) {
+            .hud {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .choices {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 540px) {
+            .hud {
+                grid-template-columns: 1fr;
+            }
+
+            .card {
+                padding: 22px 18px;
+            }
+
+            .letter-stage {
+                padding: 24px 18px;
+            }
+
+            .choice-btn {
+                padding: 16px 14px;
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <main class="game-page">
+        <h1 class="game-title">Game Mengenal Huruf</h1>
+        <p class="game-subtitle">5 level, 25 soal harian, timer otomatis, dan langsung lanjut soal berikutnya.</p>
+
+        <section class="card">
+            <div class="hud">
+                <div class="hud-box" id="hudLevel">Level 1</div>
+                <div class="hud-box" id="hudQuestion">Soal 1/25</div>
+                <div class="hud-box" id="hudInLevel">Level Soal 1/5</div>
+                <div class="hud-box" id="hudTimer">Waktu 60 detik</div>
+                <div class="hud-box" id="hudScore">Skor 0</div>
+            </div>
+
+            <div class="letter-stage">
+                <p class="question-title" id="questionPrompt">Memuat soal...</p>
+                <div class="big-letter" id="questionLetter">?</div>
+                <div class="choices" id="choicesWrap"></div>
+            </div>
+
+            <div class="feedback" id="feedbackText"></div>
+
+            <div class="game-actions">
+                <a href="{{ url_for('main.peta_pertualangan') }}" class="btn btn-neutral">Kembali ke Peta</a>
+            </div>
+
+            <p id="statusText" class="status-text"></p>
+        </section>
+
+        <div id="gameEndOverlay" class="game-end-overlay" aria-hidden="true">
+            <div class="game-end-card">
+                <h2>KAMU BERHASIL</h2>
+                <div class="game-end-badge" id="gameEndBadge">
+                    <div class="game-end-badge-icon" id="gameEndBadgeIcon">⭐</div>
+                    <div class="game-end-badge-info">
+                        <div class="game-end-badge-title" id="gameEndBadgeLabel">Badge: Belum ada</div>
+                        <div class="game-end-badge-description" id="gameEndBadgePoints">Total poin hari ini: 0</div>
+                    </div>
+                </div>
+                <p class="game-end-text" id="gameEndMessage">Total jawaban benar: 0 dari 25</p>
+                <div class="game-end-buttons">
+                    <a href="{{ url_for('main.index') }}" class="btn btn-neutral">Home</a>
+                    <button type="button" class="btn btn-neutral" id="refreshGameBtn">Refresh</button>
+                    <a href="{{ url_for('main.game_angka') }}" class="btn btn-neutral" id="nextGameBtn">Next</a>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <audio id="soundCorrect" src="{{ url_for('static', filename='audio/benar.mp3') }}" preload="auto"></audio>
+    <audio id="soundWrong" src="{{ url_for('static', filename='audio/salah.mp3') }}" preload="auto"></audio>
+
+    <script src="{{ url_for('static', filename='audio-helper.js') }}"></script>
+    <script>
+        const STATUS_KEY = 'adventureStatus';
+        const LAST_LEVEL_KEY = 'lastLevel';
+        const LEVEL_KEY = 'huruf';
+        const MAX_WRONG_ATTEMPTS = 2;
+
+        let questions = [];
+        let currentIndex = 0;
+        let timerId = null;
+        let remainingTime = 0;
+        let wrongAttempts = 0;
+        let isGameFinished = false;
+        let isAnswerLocked = false;
+        let totalScore = 0;
+        let correctAnswers = 0;
+        let levelScores = [0, 0, 0, 0, 0];
+
+        const promptEl = document.getElementById('questionPrompt');
+        const endOverlayEl = document.getElementById('gameEndOverlay');
+        const endStarsEl = document.getElementById('gameEndStars');
+        const endMessageEl = document.getElementById('gameEndMessage');
+        const refreshGameBtn = document.getElementById('refreshGameBtn');
+
+        refreshGameBtn.addEventListener('click', () => {
+            window.location.reload();
+        });
+        const letterEl = document.getElementById('questionLetter');
+        const choicesWrap = document.getElementById('choicesWrap');
+        const feedbackEl = document.getElementById('feedbackText');
+        const statusEl = document.getElementById('statusText');
+
+        const hudLevel = document.getElementById('hudLevel');
+        const hudQuestion = document.getElementById('hudQuestion');
+        const hudInLevel = document.getElementById('hudInLevel');
+        const hudTimer = document.getElementById('hudTimer');
+        const hudScore = document.getElementById('hudScore');
+
+        const soundCorrect = document.getElementById('soundCorrect');
+        const soundWrong = document.getElementById('soundWrong');
+
+        // Stop only audio elements that are explicitly allowed to be auto-stopped.
+        // To avoid altering audio unexpectedly, elements must include
+        // `data-autostop="true"` to be affected.
+        function stopAllOtherAudio() {
+            const audios = document.querySelectorAll('audio[data-autostop="true"]');
+            audios.forEach(audio => {
+                try {
+                    audio.pause();
+                    audio.currentTime = 0;
+                } catch (err) {
+                    console.warn('[Audio] failed to stop audio:', err);
+                }
+            });
+        }
+
+        function playSound(audioElement) {
+            if (!audioElement) {
+                return;
+            }
+            if (window.AudioHelper) {
+                AudioHelper.playSimple(audioElement);
+            } else {
+                // Fallback if AudioHelper not loaded
+                try {
+                    audioElement.currentTime = 0;
+                    audioElement.play().catch(() => {});
+                } catch (error) {
+                    console.warn('[Audio] Error playing sound:', error);
+                }
+            }
+        }
+
+        function speak(text) {
+            // Disabled speech synthesis to play only benar.mp3 and salah.mp3
+        }
+
+        function loadStatus() {
+            const raw = localStorage.getItem(STATUS_KEY);
+            if (!raw) {
+                const def = { huruf: 'unlocked', angka: 'locked', warna: 'locked' };
+                localStorage.setItem(STATUS_KEY, JSON.stringify(def));
+                return def;
+            }
+            try {
+                const parsed = JSON.parse(raw);
+                return {
+                    huruf: parsed.huruf || 'unlocked',
+                    angka: parsed.angka || 'locked',
+                    warna: parsed.warna || 'locked'
+                };
+            } catch (error) {
+                const def = { huruf: 'unlocked', angka: 'locked', warna: 'locked' };
+                localStorage.setItem(STATUS_KEY, JSON.stringify(def));
+                return def;
+            }
+        }
+
+        function saveStatus(status) {
+            localStorage.setItem(STATUS_KEY, JSON.stringify(status));
+        }
+
+        function setFeedback(text, type) {
+            feedbackEl.textContent = text;
+            feedbackEl.classList.remove('ok', 'error');
+            if (type) {
+                feedbackEl.classList.add(type);
+            }
+        }
+
+        function setChoicesEnabled(enabled) {
+            const buttons = choicesWrap.querySelectorAll('button');
+            buttons.forEach((btn) => {
+                btn.disabled = !enabled;
+            });
+        }
+
+        function clearTimer() {
+            if (timerId) {
+                clearInterval(timerId);
+                timerId = null;
+            }
+        }
+
+        function updateHud(currentQuestion) {
+            const level = currentQuestion.level;
+            const numberInLevel = currentQuestion.number_in_level;
+            hudLevel.textContent = 'Level ' + level;
+            hudQuestion.textContent = 'Soal ' + (currentIndex + 1) + '/' + questions.length;
+            hudInLevel.textContent = 'Level Soal ' + numberInLevel + '/5';
+            hudTimer.textContent = 'Waktu ' + remainingTime + ' detik';
+            hudScore.textContent = 'Skor ' + totalScore;
+        }
+
+        function startTimer() {
+            clearTimer();
+            timerId = setInterval(() => {
+                if (isGameFinished) {
+                    clearTimer();
+                    return;
+                }
+
+                remainingTime -= 1;
+                hudTimer.textContent = 'Waktu ' + Math.max(remainingTime, 0) + ' detik';
+
+                if (remainingTime <= 0) {
+                    clearTimer();
+                    setChoicesEnabled(false);
+                    setFeedback('Waktu habis, lanjut ke soal berikutnya.', 'error');
+                    setTimeout(() => nextQuestion(), 800);
+                }
+            }, 1000);
+        }
+
+        function renderQuestion() {
+            if (currentIndex >= questions.length) {
+                finishGame();
+                return;
+            }
+
+            const currentQuestion = questions[currentIndex];
+            wrongAttempts = 0;
+            isAnswerLocked = false;
+            remainingTime = currentQuestion.time_limit;
+
+            promptEl.textContent = currentQuestion.prompt;
+            renderQuestionVisual(currentQuestion);
+            setFeedback('', null);
+
+            choicesWrap.innerHTML = '';
+            currentQuestion.options.forEach((optionText) => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'choice-btn';
+
+                const optionImage = currentQuestion.option_images && currentQuestion.option_images[optionText];
+                if (optionImage) {
+                    btn.classList.add('choice-visual');
+                    btn.appendChild(buildOptionVisual(optionText, optionImage));
+                } else {
+                    btn.textContent = optionText;
+                }
+
+                btn.addEventListener('click', () => submitAnswer(optionText));
+                choicesWrap.appendChild(btn);
+            });
+
+            updateHud(currentQuestion);
+            startTimer();
+        }
+
+        function renderQuestionVisual(question) {
+            letterEl.innerHTML = '';
+            if (question.question_image) {
+                const img = document.createElement('img');
+                img.className = 'question-visual';
+                img.src = question.question_image;
+                img.alt = 'Gambar soal huruf';
+                letterEl.appendChild(img);
+                return;
+            }
+
+            letterEl.textContent = question.display || '?';
+        }
+
+        function buildOptionVisual(optionText, optionImage) {
+            const wrap = document.createElement('div');
+            wrap.className = 'choice-option-wrap';
+
+            const img = document.createElement('img');
+            img.src = optionImage;
+            img.alt = 'Pilihan ' + optionText;
+            wrap.appendChild(img);
+
+            const caption = document.createElement('span');
+            caption.className = 'choice-caption';
+            caption.textContent = optionText;
+            wrap.appendChild(caption);
+
+            return wrap;
+        }
+
+        async function submitAnswer(selectedAnswer) {
+            if (isGameFinished || isAnswerLocked || remainingTime <= 0) {
+                return;
+            }
+
+            isAnswerLocked = true;
+            setChoicesEnabled(false);
+
+            const currentQuestion = questions[currentIndex];
+            console.info('[DEBUG] game_huruf submitAnswer', {
+                question_id: currentQuestion.question_id,
+                selected_answer: selectedAnswer,
+                expected_answer: currentQuestion.answer || currentQuestion.display || ''
+            });
+
+            try {
+                const response = await fetch('/api/game/huruf/submit-answer', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        question_id: currentQuestion.question_id,
+                        selected_answer: selectedAnswer
+                    })
+                });
+                const data = await response.json();
+
+                if (!response.ok) {
+                    setFeedback(data.message || 'Gagal memproses jawaban.', 'error');
+                    isAnswerLocked = false;
+                    setChoicesEnabled(true);
+                    return;
+                }
+
+                if (data.is_correct) {
+                    clearTimer();
+                    setFeedback('Jawaban Anda benar', 'ok');
+                    playSound(soundCorrect);
+                    // speak('Jawaban Anda benar'); // Disabled - only audio files should play
+
+                    correctAnswers += 1;
+                    totalScore += Number(data.weight || 0);
+                    const levelIndex = Number(data.level || currentQuestion.level) - 1;
+                    if (levelIndex >= 0 && levelIndex < levelScores.length) {
+                        levelScores[levelIndex] += Number(data.weight || 0);
+                    }
+                    hudScore.textContent = 'Skor ' + totalScore;
+
+                    await sendProgressUpdate({
+                        answered_questions: currentIndex + 1,
+                        total_questions: 25,
+                        status: 'sedang'
+                    });
+
+                    setTimeout(() => nextQuestion(), 800);
+                    return;
+                }
+
+                wrongAttempts += 1;
+                playSound(soundWrong);
+                // speak('Silakan coba lagi'); // Disabled - only audio files should play
+
+                if (wrongAttempts <= MAX_WRONG_ATTEMPTS && remainingTime > 0) {
+                    setFeedback('Jawaban Anda salah, silakan coba lagi', 'error');
+                    isAnswerLocked = false;
+                    setChoicesEnabled(true);
+                } else {
+                    setFeedback('Jawaban masih salah. Lanjut ke soal berikutnya.', 'error');
+                    setTimeout(() => nextQuestion(), 800);
+                }
+            } catch (error) {
+                setFeedback('Terjadi gangguan jaringan. Coba lagi.', 'error');
+                isAnswerLocked = false;
+                setChoicesEnabled(true);
+            }
+        }
+
+        function nextQuestion() {
+            clearTimer();
+            currentIndex += 1;
+            renderQuestion();
+        }
+
+        async function sendProgressUpdate(payload) {
+            try {
+                await fetch('/api/game/progress/update', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(Object.assign({ game_key: LEVEL_KEY }, payload || {}))
+                });
+            } catch (error) {
+                console.warn('Gagal sinkron progress game huruf', error);
+            }
+        }
+
+        async function finishGame() {
+            if (isGameFinished) {
+                return;
+            }
+            isGameFinished = true;
+            clearTimer();
+            setChoicesEnabled(false);
+            statusEl.textContent = 'Menyimpan skor ke database...';
+
+            await sendProgressUpdate({
+                answered_questions: 25,
+                total_questions: 25,
+                status: 'selesai'
+            });
+
+            try {
+                const response = await fetch('/api/game/huruf/finish', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ level_scores: levelScores })
+                });
+                const data = await response.json();
+
+                if (!response.ok) {
+                    statusEl.textContent = data.message || 'Gagal menyimpan sesi game.';
+                    return;
+                }
+
+                const status = loadStatus();
+                status[LEVEL_KEY] = 'completed';
+                if (status.angka !== 'completed') {
+                    status.angka = 'unlocked';
+                }
+                saveStatus(status);
+                localStorage.setItem(LAST_LEVEL_KEY, LEVEL_KEY);
+
+                setFeedback('Game selesai. Total skor: ' + data.total_score, 'ok');
+            statusEl.textContent = 'Skor tersimpan. Level Angka sekarang terbuka. Kembali ke peta untuk lanjut bermain.';
+            showEndOverlay(correctAnswers);
+            } catch (error) {
+                statusEl.textContent = 'Gagal menyimpan sesi karena jaringan terputus.';
+            }
+        }
+
+        function showEndOverlay(correctCount) {
+            endMessageEl.textContent = `Total jawaban benar: ${correctCount} dari 25`;
+            endOverlayEl.classList.add('active');
+            endOverlayEl.setAttribute('aria-hidden', 'false');
+
+            const endBadgeIcon = document.getElementById('gameEndBadgeIcon');
+            const endBadgeLabel = document.getElementById('gameEndBadgeLabel');
+            const endBadgePoints = document.getElementById('gameEndBadgePoints');
+
+            fetch('/api/game/daily-summary').then(r => r.json()).then(payload => {
+                try {
+                    const totalAdventurePoints = Number(payload.total_adventure_points || 0);
+                    const badgeStars = totalAdventurePoints > 0 ? Math.min(5, Math.floor((totalAdventurePoints - 1) / 45) + 1) : 0;
+                    const badgeLabelText = badgeStars > 0 ? `${'⭐'.repeat(badgeStars)} ${badgeStars} Bintang` : 'Belum ada badge';
+                    if (endBadgeIcon) {
+                        endBadgeIcon.textContent = badgeStars > 0 ? '⭐'.repeat(badgeStars) : '🔒';
+                    }
+                    if (endBadgeLabel) {
+                        endBadgeLabel.textContent = badgeLabelText;
+                    }
+                    if (endBadgePoints) {
+                        endBadgePoints.textContent = `Total poin hari ini: ${totalAdventurePoints}`;
+                    }
+                } catch (e) {
+                    console.warn('Gagal memproses rangkuman badge harian', e);
+                }
+            }).catch(() => {
+                if (endBadgeIcon) endBadgeIcon.textContent = '🔒';
+                if (endBadgeLabel) endBadgeLabel.textContent = 'Belum ada badge';
+                if (endBadgePoints) endBadgePoints.textContent = 'Total poin hari ini: 0';
+            });
+        }
+
+        async function startGame() {
+            // Stop all other audio before starting the game
+            stopAllOtherAudio();
+            
+            statusEl.textContent = 'Memuat soal harian...';
+            try {
+                const response = await fetch('/api/game/huruf/start');
+                const data = await response.json();
+
+                if (!response.ok) {
+                    statusEl.textContent = data.message || 'Tidak dapat memulai game.';
+                    return;
+                }
+
+                if (data.played_today) {
+                    statusEl.textContent = 'Game huruf sudah dimainkan hari ini. Silakan kembali besok.';
+                    promptEl.textContent = 'Permainan hari ini sudah selesai.';
+                    letterEl.textContent = '✓';
+                    choicesWrap.innerHTML = '';
+                    return;
+                }
+
+                questions = data.questions || [];
+                if (questions.length !== 25) {
+                    statusEl.textContent = 'Soal harian belum siap. Coba lagi sebentar.';
+                    promptEl.textContent = 'Soal belum tersedia.';
+                    letterEl.textContent = '?';
+                    choicesWrap.innerHTML = '';
+                    return;
+                }
+
+                statusEl.textContent = 'Pilih jawaban yang benar sebelum waktu habis.';
+                await sendProgressUpdate({
+                    answered_questions: 0,
+                    total_questions: 25,
+                    status: 'sedang'
+                });
+                renderQuestion();
+            } catch (error) {
+                statusEl.textContent = 'Gagal memuat game. Periksa koneksi internet.';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', startGame);
+    </script>
+</body>
+
+</html>

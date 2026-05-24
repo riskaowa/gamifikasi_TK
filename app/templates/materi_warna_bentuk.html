@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mengenal Warna dan Bentuk Bangun Ruang - Gamifikasi PAUD</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='gamification.css') }}" />
+    <style>
+        body { margin:0; font-family: 'Segoe UI', Tahoma, sans-serif; background: url("{{ url_for('static', filename='images/bg.png') }}") no-repeat center center / cover; background-attachment: fixed; }
+        .page { max-width: 940px; margin: 26px auto 32px; padding: 16px; }
+        .title { text-align:center; color:#1f4f8a; font-size:2.2rem; font-weight: 800; }
+        .subtitle { text-align:center; color:#2e5f90; margin: 8px auto 18px; font-size:1rem; }
+        .video-card { background:#fff; border-radius:16px; border:2px solid #f7d8b2; box-shadow:0 12px 22px rgba(110,70,20,.16); padding:18px; }
+
+        /* Playlist indicator */
+        .playlist { display:flex; gap:10px; justify-content:center; margin-bottom:14px; flex-wrap:wrap; }
+        .pl-item { display:flex; align-items:center; gap:7px; padding:7px 14px; border-radius:20px; font-weight:700; font-size:.9rem; border:2px solid #e0c8a0; background:#fdf3e3; color:#7a4d0e; cursor:pointer; transition:background .2s,border-color .2s; }
+        .pl-item.active { background:#f57f20; border-color:#f57f20; color:#fff; }
+        .pl-item .pl-dot { width:10px; height:10px; border-radius:50%; background:currentColor; flex-shrink:0; }
+
+        /* Video player wrapper */
+        .iframe-wrap { position:relative; overflow:hidden; padding-top:56.25%; border-radius:12px; background:#000; }
+        .iframe-wrap iframe, .iframe-wrap #ytPlayer { position:absolute; top:0; left:0; width:100%; height:100%; border:0; border-radius:12px; }
+
+        /* Auto-next banner */
+        .next-banner { display:none; align-items:center; justify-content:center; gap:10px; margin-top:12px; padding:10px 16px; background:#fff8ec; border:1px solid #f7c87a; border-radius:10px; font-weight:700; color:#7a4d0e; flex-wrap:wrap; }
+        .next-banner.visible { display:flex; }
+        .next-banner .countdown { font-size:1.4rem; color:#f57f20; min-width:24px; text-align:center; }
+
+        .video-label { text-align:center; font-weight:700; color:#7a4d0e; margin:0 0 10px; font-size:1rem; }
+        .actions { display:flex; flex-wrap:wrap; gap:12px; justify-content:center; margin-top:16px; }
+        .btn { border:0; border-radius:10px; padding:11px 18px; font-weight:700; font-size:0.98rem; cursor:pointer; text-decoration:none; color:#fff; }
+        .btn-secondary { background:#f57f20; }
+        .btn-secondary:hover { background:#bf6b1b; }
+        .btn-link { background:#41b6a3; }
+        .btn-link:hover { background:#2f8f77; }
+        .btn-outline { background:transparent; border:2px solid #f57f20; color:#f57f20; }
+        .btn-outline:hover { background:#f57f20; color:#fff; }
+        .alert { text-align:center; margin-top:8px; color:#1f4f8a; font-weight:700; }
+    </style>
+</head>
+<body>
+    <main class="page">
+        <h1 class="title">Mengenal Warna dan Bentuk Bangun Ruang</h1>
+        <p class="subtitle">Tonton video pembelajaran terlebih dahulu, kemudian kamu bisa mulai belajar!</p>
+
+        <div class="video-card">
+            <!-- Playlist indicator -->
+            <div class="playlist">
+                <div class="pl-item active" id="pl0" onclick="switchVideo(0)">
+                    <span class="pl-dot"></span> Video 1 &middot; Mengenal Warna
+                </div>
+                <div class="pl-item" id="pl1" onclick="switchVideo(1)">
+                    <span class="pl-dot"></span> Video 2 &middot; Mengenal Bentuk
+                </div>
+            </div>
+
+            <p class="video-label" id="videoLabel">&#128250; Video 1: Mengenal Warna</p>
+
+            <div class="iframe-wrap">
+                <div id="ytPlayer"></div>
+            </div>
+
+            <!-- Auto-next countdown banner -->
+            <div class="next-banner" id="nextBanner">
+                <span>Video 1 selesai! Lanjut ke Video 2 dalam</span>
+                <span class="countdown" id="countdownNum">3</span>
+                <span>detik&hellip;</span>
+                <button class="btn btn-outline" onclick="cancelAutoNext()" style="padding:6px 12px;font-size:.85rem;">Batalkan</button>
+            </div>
+
+            <div class="actions">
+                <a target="_blank" rel="noopener" href="https://youtu.be/gzRtLZRVV0Q" class="btn btn-link" id="ytLink1">Buka Video 1 di YouTube</a>
+                <a target="_blank" rel="noopener" href="https://youtu.be/qAVBIYN23Zw" class="btn btn-link" id="ytLink2" style="display:none;">Buka Video 2 di YouTube</a>
+                <a href="{{ url_for('main.materi') }}" class="btn btn-secondary">Selesai Belajar / Kembali</a>
+            </div>
+            <p class="alert">Tonton video hingga selesai, lalu kembali ke materi.</p>
+        </div>
+    </main>
+
+    <script>
+        var VIDEOS = [
+            { id: 'gzRtLZRVV0Q', label: '\u{1F4FA} Video 1: Mengenal Warna' },
+            { id: 'qAVBIYN23Zw', label: '\u{1F4FA} Video 2: Mengenal Bentuk Bangun Ruang' }
+        ];
+
+        var player = null;
+        var currentVideoIndex = 0;
+        var autoNextTimer = null;
+        var autoNextCancelled = false;
+
+        function onYouTubeIframeAPIReady() {
+            player = new YT.Player('ytPlayer', {
+                height: '100%',
+                width: '100%',
+                videoId: VIDEOS[0].id,
+                playerVars: { autoplay: 0, rel: 0, modestbranding: 1 },
+                events: { onStateChange: onPlayerStateChange }
+            });
+        }
+
+        function onPlayerStateChange(event) {
+            if (event.data === YT.PlayerState.ENDED && currentVideoIndex === 0) {
+                startAutoNext();
+            }
+        }
+
+        function startAutoNext() {
+            autoNextCancelled = false;
+            var banner = document.getElementById('nextBanner');
+            var countEl = document.getElementById('countdownNum');
+            banner.classList.add('visible');
+            var count = 3;
+            countEl.textContent = count;
+            autoNextTimer = setInterval(function() {
+                if (autoNextCancelled) {
+                    clearInterval(autoNextTimer);
+                    banner.classList.remove('visible');
+                    return;
+                }
+                count -= 1;
+                countEl.textContent = count;
+                if (count <= 0) {
+                    clearInterval(autoNextTimer);
+                    banner.classList.remove('visible');
+                    switchVideo(1);
+                }
+            }, 1000);
+        }
+
+        function cancelAutoNext() {
+            autoNextCancelled = true;
+            clearInterval(autoNextTimer);
+            document.getElementById('nextBanner').classList.remove('visible');
+        }
+
+        function switchVideo(index) {
+            cancelAutoNext();
+            currentVideoIndex = index;
+            var v = VIDEOS[index];
+            if (player && player.loadVideoById) {
+                player.loadVideoById(v.id);
+            }
+            document.getElementById('videoLabel').textContent = v.label;
+            for (var i = 0; i < VIDEOS.length; i++) {
+                document.getElementById('pl' + i).classList.toggle('active', i === index);
+            }
+            document.getElementById('ytLink1').style.display = index === 0 ? '' : 'none';
+            document.getElementById('ytLink2').style.display = index === 1 ? '' : 'none';
+        }
+
+        var tag = document.createElement('script');
+        tag.src = 'https://www.youtube.com/iframe_api';
+        document.head.appendChild(tag);
+    </script>
+</body>
+</html>
