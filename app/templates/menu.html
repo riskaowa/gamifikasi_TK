@@ -37,6 +37,37 @@
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
             padding: 24px;
             width: min(960px, 100%);
+            position: relative;
+        }
+
+        .menu-topbar {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .logout-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px 14px;
+            border-radius: 999px;
+            border: 1px solid rgba(34, 34, 34, 0.12);
+            background: rgba(255, 255, 255, 0.94);
+            color: #2c3138;
+            font-weight: 700;
+            text-decoration: none;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            transition: transform 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+        }
+
+        .logout-button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+            background: #fff;
         }
 
         .menu-header {
@@ -233,6 +264,9 @@
         data-today="{{ today_iso }}"
     >
         <article class="menu-content">
+            <div class="menu-topbar">
+                <a href="{{ url_for('main.logout') }}" class="logout-button" title="Keluar">🚪 Keluar</a>
+            </div>
             <header class="menu-header">
                 <h1>Selamat Datang, {{ current_user.name }}!</h1>
                 <p>⭐ Ayo kumpulkan bintang sebanyak-banyaknya! Simpan misi harian dulu ya.</p>

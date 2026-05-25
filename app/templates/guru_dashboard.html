@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard Guru / Admin – Gamifikasi PAUD</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EnjdO4Dr2bkBIFxQpeoA6VnkK2zNh7J04prx8RdE9qU0jzBMFpuB4yzg5kF4vynp" crossorigin="anonymous">
     <style>
         /* ── Reset & Base ── */
         *, *::before, *::after { box-sizing: border-box; }
@@ -762,7 +763,7 @@
             <button class="tab-btn" onclick="switchTab('game-access', this)">⏰ Pengaturan Akses Game</button>
             <button class="tab-btn" onclick="switchTab('guru', this)">👩‍🏫 Daftar Akun Guru</button>
             <button class="tab-btn" onclick="switchTab('materi', this)">📚 Kelola Materi</button>
-            <button class="tab-btn" onclick="switchTab('kelola-soal', this)">🧩 Kelola Soal</button>
+            <button class="tab-btn" onclick="switchTab('bank-soal', this)">🧩 Kelola Soal</button>
         </div>
 
         <!-- ══ TAB: MURID ══ -->
@@ -1323,8 +1324,11 @@
 
         <!-- ══ TAB: AKUN GURU ══ -->
         <div id="tab-guru" class="tab-panel">
-            <div class="guru-tools">
-                <button type="button" class="btn-toggle-guru" onclick="toggleTambahGuru()">+ Tambah Guru</button>
+            <div class="tab-header" style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px;">
+                <p class="section-title">📘 Daftar Akun Guru ({{ teacher_accounts | length }})</p>
+                <div>
+                    <button type="button" class="btn-toggle-guru" onclick="toggleTambahGuru()">+ Tambah Guru</button>
+                </div>
             </div>
 
             <div id="panel-tambah-guru" class="add-form-wrap hidden">
@@ -1351,7 +1355,6 @@
                 </form>
             </div>
 
-            <p class="section-title">📘 Daftar Akun Guru ({{ teacher_accounts | length }})</p>
             <div class="table-wrap" style="margin-bottom:20px;">
                 <table>
                     <thead>
@@ -1538,443 +1541,516 @@
                     </tbody>
                 </table>
             </div>
+
         </div>
 
-        <!-- ══ TAB: KELOLA SOAL ══ -->
-        <div id="tab-kelola-soal" class="tab-panel">
-            <p class="section-title">🧩 Kelola Soal</p>
-            <p style="font-size:0.84rem;color:#5b6f96;margin-bottom:14px;">
-                Semua soal pada halaman ini langsung dianggap <strong>soal aktif</strong> dan otomatis terhubung ke
-                <strong>Peta Petualangan</strong> serta <strong>Misi Harian</strong>.
-            </p>
+            <div id="tab-bank-soal" class="tab-panel">
+                <p class="section-title">🧩 Kelola Soal</p>
 
-            <div class="add-form-wrap">
-                <p class="section-title" style="margin-bottom:10px;">➕ Tambah Soal Baru</p>
-                <form method="POST" action="{{ url_for('main.guru_tambah_bank_soal') }}" enctype="multipart/form-data">
-                    <div class="question-grid">
-                        <div class="form-group">
-                            <label>Kategori *</label>
-                            <select name="kategori" required>
-                                <option value="">- Pilih Kategori -</option>
-                                <option value="huruf">Mengenal Huruf</option>
-                                <option value="angka">Mengenal Angka</option>
-                                <option value="warna">Mengenal Warna</option>
-                                <option value="bentuk_bangun_ruang">Mengenal Bentuk Bangun Ruang</option>
-                            </select>
-                        </div>
-                        <div class="form-group" style="grid-column: span 2;">
-                            <label>Teks Pendamping Soal (opsional)</label>
-                            <input type="text" name="pertanyaan" placeholder="Contoh: Pilih gambar yang benar">
-                        </div>
-                        <div class="form-group">
-                            <label>Gambar Soal *</label>
-                            <input type="file" name="image_question_file" accept="image/*" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Label Opsi A</label>
-                            <input type="text" name="pilihan_a" placeholder="Opsi A">
-                        </div>
-                        <div class="form-group">
-                            <label>Gambar Opsi A *</label>
-                            <input type="file" name="image_option_a_file" accept="image/*" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Label Opsi B</label>
-                            <input type="text" name="pilihan_b" placeholder="Opsi B">
-                        </div>
-                        <div class="form-group">
-                            <label>Gambar Opsi B *</label>
-                            <input type="file" name="image_option_b_file" accept="image/*" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Label Opsi C</label>
-                            <input type="text" name="pilihan_c" placeholder="Opsi C">
-                        </div>
-                        <div class="form-group">
-                            <label>Gambar Opsi C *</label>
-                            <input type="file" name="image_option_c_file" accept="image/*" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Jawaban Benar *</label>
-                            <select name="jawaban_benar" required>
-                                <option value="A">Opsi A</option>
-                                <option value="B">Opsi B</option>
-                                <option value="C">Opsi C</option>
-                            </select>
-                        </div>
-                    </div>
+                <div class="relation-tools">
+                    <button type="button" class="btn-toggle-guru" onclick="toggleTambahSoal()">+ Tambah Soal</button>
+                </div>
 
-                    <div class="sa-assign-box">
-                        <p class="sa-assign-title">📌 Penugasan Langsung (opsional)</p>
+                <div id="panel-tambah-soal" class="add-form-wrap hidden">
+                    <p class="section-title" style="margin-bottom:10px;">➕ Form Tambah Soal</p>
+                    <form method="POST" action="{{ url_for('main.guru_tambah_bank_soal') }}" enctype="multipart/form-data">
                         <div class="form-row">
                             <div class="form-group">
-                                <label>Tugaskan ke</label>
-                                <select name="assign_to" id="sa-assign-to-select" onchange="updateAssignToFields()">
-                                    <option value="">Simpan soal saja</option>
-                                    <option value="peta">Peta Petualangan</option>
-                                    <option value="misi">Misi Harian Hari Ini</option>
+                                <label>Kategori *</label>
+                                <select name="kategori" required>
+                                    <option value="">– Pilih Kategori –</option>
+                                    <option value="huruf">Huruf</option>
+                                    <option value="angka">Angka</option>
+                                    <option value="warna">Warna</option>
+                                    <option value="bentuk_bangun_ruang">Bentuk</option>
                                 </select>
                             </div>
-                            <div id="sa-peta-fields" style="display:none; flex-wrap:wrap; gap:8px;">
-                                <div class="form-group">
-                                    <label>Game Peta</label>
-                                    <select name="peta_game_key">
-                                        <option value="huruf">Huruf</option>
-                                        <option value="angka">Angka</option>
-                                        <option value="warna">Warna &amp; Bentuk</option>
-                                    </select>
-                                </div>
-                                <div class="form-group">
-                                    <label>Level</label>
-                                    <select name="peta_level">
-                                        <option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option>
-                                    </select>
-                                </div>
-                                <div class="form-group">
-                                    <label>Urutan Soal</label>
-                                    <select name="peta_question_order">
-                                        <option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option>
-                                    </select>
-                                </div>
+                            <div class="form-group">
+                                <label>Level *</label>
+                                <select name="level" required>
+                                    <option value="1">Level 1</option>
+                                    <option value="2">Level 2</option>
+                                    <option value="3">Level 3</option>
+                                    <option value="4">Level 4</option>
+                                    <option value="5">Level 5</option>
+                                </select>
                             </div>
-                            <div id="sa-misi-fields" style="display:none;">
-                                <div class="form-group">
-                                    <label>Slot Misi Harian</label>
-                                    <select name="misi_question_order">
-                                        <option value="1">Soal Harian 1</option>
-                                        <option value="2">Soal Harian 2</option>
-                                    </select>
-                                </div>
+                            <div class="form-group" style="grid-column: span 2;">
+                                <label>Teks Pendamping Soal</label>
+                                <input type="text" name="pertanyaan" placeholder="Contoh: Pilih jawaban yang benar">
                             </div>
-                        </div>
-                        <div class="helper-text">Jika tidak dipilih, soal tetap langsung aktif dan bisa dipakai di peta/misi kapan saja.</div>
-                    </div>
-
-                    <button type="submit" class="btn-add" style="margin-top:12px; max-width:280px;">+ Simpan Soal</button>
-                </form>
-            </div>
-
-            <p class="section-title">🗺 Atur Slot Soal Peta Petualangan</p>
-            <div class="add-form-wrap">
-                <form method="POST" action="{{ url_for('main.guru_ganti_soal_peta') }}">
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Game Peta *</label>
-                            <select name="game_key" id="adventure-game-select" onchange="filterAdventureQuestionOptions()" required>
-                                <option value="huruf">Mengenal Huruf</option>
-                                <option value="angka">Mengenal Angka</option>
-                                <option value="warna">Warna &amp; Bentuk Bangun Ruang</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Level *</label>
-                            <select name="level" required>
-                                <option value="1">Level 1</option>
-                                <option value="2">Level 2</option>
-                                <option value="3">Level 3</option>
-                                <option value="4">Level 4</option>
-                                <option value="5">Level 5</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Urutan Soal per Level *</label>
-                            <select name="question_order" required>
-                                <option value="1">Soal 1</option>
-                                <option value="2">Soal 2</option>
-                                <option value="3">Soal 3</option>
-                                <option value="4">Soal 4</option>
-                                <option value="5">Soal 5</option>
-                            </select>
-                        </div>
-                        <div class="form-group" style="grid-column: span 2;">
-                            <label>Pilih Soal dari Kelola Soal *</label>
-                            <select name="question_id" id="adventure-question-select" onchange="updateQuestionPreview('adventure-question-select', 'adventure-question-preview')" required>
-                                <option value="">- Pilih Soal -</option>
-                                {% for q in question_bank_rows %}
-                                <option value="{{ q.id }}"
-                                        data-game-key="{% if q.kategori == 'huruf' %}huruf{% elif q.kategori == 'angka' %}angka{% elif q.kategori in ['warna', 'warna_bentuk', 'bentuk', 'bentuk_bangun_ruang'] %}warna{% else %}other{% endif %}"
-                                        data-category="{{ q.kategori }}"
-                                        data-question-text="{{ q.pertanyaan }}"
-                                        data-preview-src="{{ url_for('static', filename=q.image_question) if q.image_question and not q.image_question.startswith('http') and not q.image_question.startswith('data:') else (q.image_question or '') }}">#{{ q.id }} | {{ q.kategori | replace('_', ' ') }} | {{ q.pertanyaan[:90] }}</option>
-                                {% endfor %}
-                            </select>
-                            <div class="helper-text">Daftar soal otomatis difilter sesuai game peta yang dipilih.</div>
-                            <div id="adventure-question-preview" class="question-preview-card hidden">
-                                <img src="" alt="Preview soal peta">
-                                <div class="question-preview-meta">
-                                    <div class="question-preview-title">Preview Soal Peta</div>
-                                    <div class="question-preview-text"></div>
-                                </div>
+                            <div class="form-group">
+                                <label>Gambar Soal *</label>
+                                <input type="file" name="image_question_file" accept="image/*" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Label Opsi A</label>
+                                <input type="text" name="pilihan_a" placeholder="Opsi A">
+                            </div>
+                            <div class="form-group">
+                                <label>Gambar Opsi A *</label>
+                                <input type="file" name="image_option_a_file" accept="image/*" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Label Opsi B</label>
+                                <input type="text" name="pilihan_b" placeholder="Opsi B">
+                            </div>
+                            <div class="form-group">
+                                <label>Gambar Opsi B *</label>
+                                <input type="file" name="image_option_b_file" accept="image/*" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Label Opsi C</label>
+                                <input type="text" name="pilihan_c" placeholder="Opsi C">
+                            </div>
+                            <div class="form-group">
+                                <label>Gambar Opsi C *</label>
+                                <input type="file" name="image_option_c_file" accept="image/*" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Jawaban Benar *</label>
+                                <select name="jawaban_benar" required>
+                                    <option value="A">Opsi A</option>
+                                    <option value="B">Opsi B</option>
+                                    <option value="C">Opsi C</option>
+                                </select>
                             </div>
                         </div>
-                        <div class="form-group">
-                            <label>&nbsp;</label>
-                            <button type="submit" class="btn-add">🔁 Simpan Slot Peta</button>
+                        <div style="display:flex; justify-content:flex-end; gap:12px; flex-wrap:wrap; margin-top:10px;">
+                            <button type="submit" class="btn-add">+ Simpan Soal</button>
                         </div>
-                    </div>
-                </form>
+                    </form>
+                </div>
 
-                <div class="table-wrap" style="margin-top:10px;">
+                <p class="section-title" style="margin-top:12px;">📋 Daftar Soal ({{ question_bank_rows_all | length }})</p>
+                <div class="table-wrap">
                     <table>
                         <thead>
                             <tr>
-                                <th>Game</th>
+                                <th>No</th>
+                                <th>ID Soal</th>
+                                <th>Gambar</th>
+                                <th>Kategori</th>
                                 <th>Level</th>
-                                <th>Urutan</th>
-                                <th>ID Soal</th>
-                                <th>Soal Saat Ini</th>
+                                <th>Pertanyaan</th>
+                                <th>Jawaban</th>
+                                <th>Aksi</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {% for slot in adventure_slots %}
+                            {% for q in question_bank_rows_all %}
                             <tr>
-                                <td>{{ slot.game_key | capitalize }}</td>
-                                <td>{{ slot.level }}</td>
-                                <td>{{ slot.question_order }}</td>
-                                <td>{{ slot.question_id or '-' }}</td>
-                                <td>{{ slot.question_label or '-' }}</td>
+                                <td>{{ loop.index }}</td>
+                                <td><strong>{{ q.id }}</strong></td>
+                                <td style="width:120px;">
+                                    {% if q._image_preview %}
+                                        <img src="{{ q._image_preview }}" style="height:56px;object-fit:contain;border-radius:6px;border:1px solid #e6eefc;">
+                                    {% elif q._option_image_a or q._option_image_b or q._option_image_c %}
+                                        <div style="display:flex;gap:6px;align-items:center;">
+                                            {% if q._option_image_a %}<img src="{{ q._option_image_a }}" style="height:40px;object-fit:contain;border-radius:6px;border:1px solid #f0f4fb;">{% endif %}
+                                            {% if q._option_image_b %}<img src="{{ q._option_image_b }}" style="height:40px;object-fit:contain;border-radius:6px;border:1px solid #f0f4fb;">{% endif %}
+                                            {% if q._option_image_c %}<img src="{{ q._option_image_c }}" style="height:40px;object-fit:contain;border-radius:6px;border:1px solid #f0f4fb;">{% endif %}
+                                        </div>
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+                                <td>{{ q.kategori | replace('_', ' ') | capitalize }}</td>
+                                <td>{{ q.level or '-' }}</td>
+                                <td style="max-width:220px;white-space:pre-wrap;font-size:0.84rem;color:#5b6f96;">{{ q.pertanyaan or '-' }}</td>
+                                <td>{{ q.jawaban_benar or '-' }}</td>
+                                <td style="white-space:nowrap;">
+                                    <button type="button" class="btn-edit" onclick="toggleEditBankSoal('{{ q.id }}')">✏ Edit</button>
+                                    <form method="POST" action="{{ url_for('main.guru_hapus_bank_soal', question_id=q.id) }}" style="display:inline-block;" onsubmit="return confirm('Hapus soal ID #{{ q.id }}?')">
+                                        <input type="hidden" name="source_tab" value="bank-soal">
+                                        <button type="submit" class="btn-del">🗑 Hapus</button>
+                                    </form>
+                                </td>
+                            </tr>
+                            <tr id="edit-bank-soal-row-{{ q.id }}" class="edit-row" style="display:none;">
+                                <td colspan="7">
+                                    <form method="POST" action="{{ url_for('main.guru_edit_bank_soal', question_id=q.id) }}" enctype="multipart/form-data" class="edit-inline-form">
+                                        <input type="hidden" name="source_tab" value="bank-soal">
+                                        <div class="form-row">
+                                            <div class="form-group">
+                                                <label>Kategori</label>
+                                                <select name="kategori" required>
+                                                    <option value="huruf" {% if q.kategori == 'huruf' %}selected{% endif %}>Huruf</option>
+                                                    <option value="angka" {% if q.kategori == 'angka' %}selected{% endif %}>Angka</option>
+                                                    <option value="warna" {% if q.kategori == 'warna' %}selected{% endif %}>Warna</option>
+                                                    <option value="bentuk_bangun_ruang" {% if q.kategori == 'bentuk_bangun_ruang' %}selected{% endif %}>Bentuk</option>
+                                                </select>
+                                            </div>
+                                            <div class="form-group">
+                                                <label>Level</label>
+                                                <select name="level" required>
+                                                    <option value="1" {% if q.level == 1 %}selected{% endif %}>Level 1</option>
+                                                    <option value="2" {% if q.level == 2 %}selected{% endif %}>Level 2</option>
+                                                    <option value="3" {% if q.level == 3 %}selected{% endif %}>Level 3</option>
+                                                    <option value="4" {% if q.level == 4 %}selected{% endif %}>Level 4</option>
+                                                    <option value="5" {% if q.level == 5 %}selected{% endif %}>Level 5</option>
+                                                </select>
+                                            </div>
+                                            <div class="form-group" style="grid-column: span 2;">
+                                                <label>Pertanyaan</label>
+                                                <input type="text" name="pertanyaan" value="{{ q.pertanyaan }}">
+                                            </div>
+                                            <div class="form-group">
+                                                <label>Label Opsi A</label>
+                                                <input type="text" name="pilihan_a" value="{{ q.pilihan_a }}">
+                                            </div>
+                                            <div class="form-group">
+                                                <label>Label Opsi B</label>
+                                                <input type="text" name="pilihan_b" value="{{ q.pilihan_b }}">
+                                            </div>
+                                            <div class="form-group">
+                                                <label>Label Opsi C</label>
+                                                <input type="text" name="pilihan_c" value="{{ q.pilihan_c }}">
+                                            </div>
+                                            <div class="form-group">
+                                                <label>Jawaban Benar</label>
+                                                <select name="jawaban_benar" required>
+                                                    <option value="A" {% if q.jawaban_benar == 'A' %}selected{% endif %}>Opsi A</option>
+                                                    <option value="B" {% if q.jawaban_benar == 'B' %}selected{% endif %}>Opsi B</option>
+                                                    <option value="C" {% if q.jawaban_benar == 'C' %}selected{% endif %}>Opsi C</option>
+                                                </select>
+                                            </div>
+                                            <div class="form-group">
+                                                <label>Ganti Gambar Soal</label>
+                                                <input type="file" name="image_question_file" accept="image/*">
+                                            </div>
+                                            <div class="form-group">
+                                                <label>Ganti Gambar Opsi A</label>
+                                                <input type="file" name="image_option_a_file" accept="image/*">
+                                            </div>
+                                            <div class="form-group">
+                                                <label>Ganti Gambar Opsi B</label>
+                                                <input type="file" name="image_option_b_file" accept="image/*">
+                                            </div>
+                                            <div class="form-group">
+                                                <label>Ganti Gambar Opsi C</label>
+                                                <input type="file" name="image_option_c_file" accept="image/*">
+                                            </div>
+                                        </div>
+                                        <div style="display:flex; justify-content:flex-end; gap:12px; flex-wrap:wrap; margin-top:10px;">
+                                            <button type="submit" class="btn-add">💾 Simpan</button>
+                                            <button type="button" class="btn-del" onclick="toggleEditBankSoal('{{ q.id }}')">✕ Batal</button>
+                                        </div>
+                                    </form>
+                                </td>
                             </tr>
                             {% else %}
-                            <tr><td colspan="5" style="text-align:center;color:#8a9bb5;padding:20px;">Belum ada mapping peta.</td></tr>
+                            <tr><td colspan="6" style="text-align:center;color:#8a9bb5;padding:20px;">Belum ada soal. Klik "Tambah Soal" untuk menambahkan.</td></tr>
                             {% endfor %}
                         </tbody>
                     </table>
                 </div>
-            </div>
 
-            <p class="section-title">🎯 Atur Slot Misi Harian ({{ today_date.strftime('%d-%m-%Y') if today_date else '-' }})</p>
-            <div class="add-form-wrap">
-                <form method="POST" action="{{ url_for('main.guru_ganti_soal_misi_harian') }}">
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Filter Kategori *</label>
-                            <select id="daily-mission-category-select" onchange="filterDailyMissionQuestionOptions()" required>
-                                <option value="all">Semua Kategori</option>
-                                <option value="huruf">Mengenal Huruf</option>
-                                <option value="angka">Mengenal Angka</option>
-                                <option value="warna">Mengenal Warna</option>
-                                <option value="bentuk_bangun_ruang">Mengenal Bentuk Bangun Ruang</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Slot Soal Harian *</label>
-                            <select name="question_order" required>
-                                <option value="1">Soal Harian 1</option>
-                                <option value="2">Soal Harian 2</option>
-                            </select>
-                        </div>
-                        <div class="form-group" style="grid-column: span 2;">
-                            <label>Pilih Soal dari Kelola Soal *</label>
-                            <select name="question_id" id="daily-mission-question-select" onchange="updateQuestionPreview('daily-mission-question-select', 'daily-mission-question-preview')" required>
-                                <option value="">- Pilih Soal -</option>
-                                {% for q in question_bank_rows %}
-                                <option value="{{ q.id }}"
-                                        data-category="{{ q.kategori }}"
-                                        data-question-text="{{ q.pertanyaan }}"
-                                        data-preview-src="{{ url_for('static', filename=q.image_question) if q.image_question and not q.image_question.startswith('http') and not q.image_question.startswith('data:') else (q.image_question or '') }}">#{{ q.id }} | {{ q.kategori | replace('_', ' ') }} | {{ q.pertanyaan[:90] }}</option>
+                <div class="add-form-wrap" style="margin-top:22px;">
+                    <p class="section-title">🧩 Soal Game Huruf Hari Ini</p>
+                    <p class="helper-text" style="margin-top:0; margin-bottom:12px;">Daftar soal huruf yang sedang dipakai oleh game hari ini.</p>
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th style="width:5%;">#</th>
+                                    <th style="width:18%;">ID Soal</th>
+                                    <th style="width:12%;">Huruf</th>
+                                    <th style="width:18%;">Level</th>
+                                    <th>Opsi</th>
+                                    <th style="width:16%;">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for q in huruf_game_questions %}
+                                <tr>
+                                    <td>{{ loop.index }}</td>
+                                    <td>{{ q.question_id }}</td>
+                                    <td>{{ q.display }}</td>
+                                    <td>Level {{ q.level }} ({{ q.number_in_level }})</td>
+                                    <td>{{ q.options | join(', ') }}</td>
+                                    <td style="white-space:nowrap;">
+                                        <button type="button" class="btn-edit" onclick="openSwapFromData(this)" data-game="huruf" data-level="{{ q.level }}" data-order="{{ q.number_in_level }}">🔁 Ganti Soal</button>
+                                        <button type="button" class="btn-edit" onclick="editHurufGameQuestion('{{ q.question_id }}')">✏ Edit</button>
+                                        <button type="button" class="btn-del" onclick="deleteHurufGameQuestion('{{ q.question_id }}', this)">🗑 Hapus</button>
+                                    </td>
+                                </tr>
+                                {% else %}
+                                <tr><td colspan="6" style="text-align:center;color:#8a9bb5;padding:20px;">Belum ada data soal huruf untuk hari ini.</td></tr>
                                 {% endfor %}
-                            </select>
-                            <div class="helper-text">Pilih kategori terlebih dahulu agar pilihan soal lebih fokus.</div>
-                            <div id="daily-mission-question-preview" class="question-preview-card hidden">
-                                <img src="" alt="Preview soal misi harian">
-                                <div class="question-preview-meta">
-                                    <div class="question-preview-title">Preview Soal Misi Harian</div>
-                                    <div class="question-preview-text"></div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label>&nbsp;</label>
-                            <button type="submit" class="btn-add">🔁 Simpan Slot Misi</button>
-                        </div>
-                    </div>
-                </form>
-
-                <div class="table-wrap" style="margin-top:10px;">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Slot</th>
-                                <th>ID Soal</th>
-                                <th>Soal Saat Ini</th>
-                                <th>Sumber</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for slot in daily_mission_slots %}
-                            <tr>
-                                <td>{{ slot.question_order }}</td>
-                                <td>{{ slot.question_id or '-' }}</td>
-                                <td>{{ slot.question_label or '-' }}</td>
-                                <td>{% if slot.set_by_teacher %}Manual Guru{% else %}Random Harian{% endif %}</td>
-                            </tr>
-                            {% else %}
-                            <tr><td colspan="4" style="text-align:center;color:#8a9bb5;padding:20px;">Belum ada generate soal misi harian.</td></tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <p class="section-title">📖 Daftar Soal Aktif ({{ soal_aktif | length }})</p>
-            {% if soal_aktif %}
-            <div class="soal-aktif-filter-bar">
-                <label>Konteks:</label>
-                <select id="soal-aktif-context-filter" onchange="filterSoalAktif()">
-                    <option value="all">Semua</option>
-                    <option value="Peta Petualangan">Peta Petualangan</option>
-                    <option value="Misi Harian">Misi Harian</option>
-                    <option value="Tersedia">Belum Dipakai</option>
-                </select>
-                <label>Kategori:</label>
-                <select id="soal-aktif-category-filter" onchange="filterSoalAktif()">
-                    <option value="all">Semua</option>
-                    <option value="huruf">Huruf</option>
-                    <option value="angka">Angka</option>
-                    <option value="warna">Warna</option>
-                    <option value="bentuk_bangun_ruang">Bentuk</option>
-                    <option value="campuran">Campuran</option>
-                </select>
-                <span class="soal-aktif-count" id="soal-aktif-count">{{ soal_aktif | length }} soal</span>
-            </div>
-            <div class="soal-aktif-grid" id="soal-aktif-grid">
-            {% for q in soal_aktif %}
-                <div class="soal-aktif-card" data-context="{{ q.pemakaian }}" data-category="{{ q.kategori }}">
-                    <div class="card-header">
-                        <div class="card-badges">
-                            {% if 'Peta Petualangan' in q.pemakaian %}
-                            <span class="badge-pemakaian peta">🗺 Peta</span>
-                            {% endif %}
-                            {% if 'Misi Harian' in q.pemakaian %}
-                            <span class="badge-pemakaian misi">🎯 Misi</span>
-                            {% endif %}
-                            {% if q.pemakaian == 'Tersedia' %}
-                            <span class="badge-pemakaian">📦 Tersedia</span>
-                            {% endif %}
-                            <span class="badge-pemakaian">{{ q.kategori | replace('_', ' ') | capitalize }}</span>
-                        </div>
-                        <div class="card-actions">
-                            <span class="card-id">ID #{{ q.id }}</span>
-                            <button type="button" class="sa-btn-edit" data-qid="{{ q.id }}" onclick="toggleEditSoalAktif(this.dataset.qid)">✏ Edit</button>
-                            <form method="POST" action="{{ url_for('main.guru_hapus_bank_soal', question_id=q.id) }}" style="display:inline;" onsubmit="return confirm('Hapus soal ID #{{ q.id }}? Slot peta/misi akan dikosongkan dan diisi fallback otomatis.')">
-                                <input type="hidden" name="source_tab" value="kelola-soal">
-                                <button type="submit" class="sa-btn-del">🗑 Hapus</button>
-                            </form>
-                        </div>
-                    </div>
-                    {% if q.question_image %}
-                    <img src="{{ q.question_image }}" alt="Gambar Soal" class="card-question-img" onerror="this.style.display='none'">
-                    {% endif %}
-                    {% if q.pertanyaan %}
-                    <div class="card-pertanyaan">{{ q.pertanyaan }}</div>
-                    {% endif %}
-                    <div class="card-options-row">
-                        {% for opt_letter, opt_label, opt_img in [('A', q.option_a, q.option_image_a), ('B', q.option_b, q.option_image_b), ('C', q.option_c, q.option_image_c)] %}
-                        <div class="soal-option-block">
-                            {% if opt_img %}
-                            <img src="{{ opt_img }}" alt="Opsi {{ opt_letter }}" class="{% if opt_letter == q.answer_letter %}answer-img{% endif %}" onerror="this.style.display='none'">
-                            {% elif opt_label %}
-                            <div class="option-text-box {% if opt_letter == q.answer_letter %}answer-box{% endif %}">{{ opt_label }}</div>
-                            {% else %}
-                            <div class="option-text-box" style="color:#b0b8c8;">-</div>
-                            {% endif %}
-                            <div class="option-label {% if opt_letter == q.answer_letter %}answer-label{% endif %}">{{ opt_letter }}{% if opt_letter == q.answer_letter %} ✓{% endif %}</div>
-                        </div>
-                        {% endfor %}
-                    </div>
-                    <div class="card-footer">
-                        <span>Jawaban: <strong>Opsi {{ q.answer_letter }}{% if q.answer_label %} - {{ q.answer_label }}{% endif %}</strong></span>
-                        <span>{{ q.pemakaian }}</span>
-                    </div>
-
-                    <div id="sa-edit-{{ q.id }}" class="soal-aktif-edit-form hidden">
-                        <hr style="border:none; border-top:1.5px dashed #c8daf8; margin:0 0 10px;">
-                        <p style="font-size:0.78rem; font-weight:800; color:#35507f; margin-bottom:10px; letter-spacing:0.04em;">✏ EDIT SOAL INI</p>
-                        <form method="POST" action="{{ url_for('main.guru_edit_bank_soal', question_id=q.id) }}" enctype="multipart/form-data">
-                            <input type="hidden" name="source_tab" value="kelola-soal">
-                            <div class="sa-form-grid">
-                                <div class="form-group">
-                                    <label>Kategori</label>
-                                    <select name="kategori" required>
-                                        <option value="huruf" {% if q.kategori == 'huruf' %}selected{% endif %}>Huruf</option>
-                                        <option value="angka" {% if q.kategori == 'angka' %}selected{% endif %}>Angka</option>
-                                        <option value="warna" {% if q.kategori == 'warna' %}selected{% endif %}>Warna</option>
-                                        <option value="bentuk_bangun_ruang" {% if q.kategori == 'bentuk_bangun_ruang' %}selected{% endif %}>Bentuk</option>
-                                    </select>
-                                </div>
-                                <div class="form-group" style="grid-column: span 2;">
-                                    <label>Teks Soal</label>
-                                    <input type="text" name="pertanyaan" value="{{ q.pertanyaan }}">
-                                </div>
-                                <div class="form-group">
-                                    <label>Label Opsi A</label>
-                                    <input type="text" name="pilihan_a" value="{{ q.option_a }}">
-                                </div>
-                                <div class="form-group">
-                                    <label>Label Opsi B</label>
-                                    <input type="text" name="pilihan_b" value="{{ q.option_b }}">
-                                </div>
-                                <div class="form-group">
-                                    <label>Label Opsi C</label>
-                                    <input type="text" name="pilihan_c" value="{{ q.option_c }}">
-                                </div>
-                                <div class="form-group">
-                                    <label>Jawaban Benar</label>
-                                    <select name="jawaban_benar" required>
-                                        <option value="A" {% if q.answer_letter == 'A' %}selected{% endif %}>Opsi A</option>
-                                        <option value="B" {% if q.answer_letter == 'B' %}selected{% endif %}>Opsi B</option>
-                                        <option value="C" {% if q.answer_letter == 'C' %}selected{% endif %}>Opsi C</option>
-                                    </select>
-                                </div>
-                                <div class="form-group">
-                                    <label>Ganti Gambar Soal</label>
-                                    <input type="file" name="image_question_file" accept="image/*">
-                                    {% if q.question_image %}
-                                    <img src="{{ q.question_image }}" alt="Preview gambar soal" style="margin-top:6px;width:100%;max-width:170px;border-radius:8px;border:1px solid #c8daf8;background:#fff;" onerror="this.style.display='none'">
-                                    {% endif %}
-                                </div>
-                                <div class="form-group">
-                                    <label>Ganti Gambar Opsi A</label>
-                                    <input type="file" name="image_option_a_file" accept="image/*">
-                                    {% if q.option_image_a %}
-                                    <img src="{{ q.option_image_a }}" alt="Preview opsi A" style="margin-top:6px;width:100%;max-width:120px;border-radius:8px;border:1px solid #c8daf8;background:#fff;" onerror="this.style.display='none'">
-                                    {% endif %}
-                                </div>
-                                <div class="form-group">
-                                    <label>Ganti Gambar Opsi B</label>
-                                    <input type="file" name="image_option_b_file" accept="image/*">
-                                    {% if q.option_image_b %}
-                                    <img src="{{ q.option_image_b }}" alt="Preview opsi B" style="margin-top:6px;width:100%;max-width:120px;border-radius:8px;border:1px solid #c8daf8;background:#fff;" onerror="this.style.display='none'">
-                                    {% endif %}
-                                </div>
-                                <div class="form-group">
-                                    <label>Ganti Gambar Opsi C</label>
-                                    <input type="file" name="image_option_c_file" accept="image/*">
-                                    {% if q.option_image_c %}
-                                    <img src="{{ q.option_image_c }}" alt="Preview opsi C" style="margin-top:6px;width:100%;max-width:120px;border-radius:8px;border:1px solid #c8daf8;background:#fff;" onerror="this.style.display='none'">
-                                    {% endif %}
-                                </div>
-                            </div>
-                            <div style="margin-top:10px; display:flex; gap:8px; flex-wrap:wrap;">
-                                <button type="submit" class="btn-add" style="margin-top:0; max-width:180px;">💾 Simpan</button>
-                                <button type="button" class="btn-del" style="margin-top:0;" data-qid="{{ q.id }}" onclick="toggleEditSoalAktif(this.dataset.qid)">✕ Batal</button>
-                            </div>
-                        </form>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
-            {% endfor %}
+
+                <div class="add-form-wrap" style="margin-top:18px;">
+                    <p class="section-title">🎨 Soal Game Warna & Bentuk Hari Ini</p>
+                    <p class="helper-text" style="margin-top:0; margin-bottom:8px;">Soal-soal yang sedang dipakai oleh game Warna/Bentuk (ditampilkan juga di Kelola Soal).</p>
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th style="width:5%;">#</th>
+                                    <th style="width:22%;">ID Soal</th>
+                                    <th style="width:28%;">Tipe / Tampilan</th>
+                                    <th style="width:18%;">Level</th>
+                                    <th>Opsi</th>
+                                    <th style="width:13%;">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for q in warna_bentuk_game_questions %}
+                                <tr>
+                                    <td>{{ loop.index }}</td>
+                                    <td>{{ q.question_id }}</td>
+                                    <td>{{ q.display_kind }}: {{ q.display_value }}</td>
+                                    <td>Level {{ q.level }} ({{ q.number_in_level }})</td>
+                                    <td>{{ q.options | join(', ') }}</td>
+                                    <td style="white-space:nowrap;">
+                                        <button type="button" class="btn-edit" onclick="openSwapFromData(this)" data-game="warna" data-level="{{ q.level }}" data-order="{{ q.number_in_level }}">🔁 Ganti Soal</button>
+                                        <button type="button" class="btn-edit" onclick="editWarnaBentukGameQuestion('{{ q.question_id }}')">✏ Edit</button>
+                                        <button type="button" class="btn-del" onclick="deleteWarnaBentukGameQuestion('{{ q.question_id }}', this)">🗑 Hapus</button>
+                                    </td>
+                                </tr>
+                                {% else %}
+                                <tr><td colspan="6" style="text-align:center;color:#8a9bb5;padding:14px;">Belum ada data soal Warna/Bentuk untuk hari ini.</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="add-form-wrap" style="margin-top:22px;">
+                    <p class="section-title">🧩 Soal Game Angka Hari Ini</p>
+                    <p class="helper-text" style="margin-top:0; margin-bottom:12px;">Daftar soal angka yang sedang dipakai oleh game hari ini.</p>
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th style="width:5%;">#</th>
+                                    <th style="width:18%;">ID Soal</th>
+                                    <th style="width:18%;">Angka</th>
+                                    <th style="width:18%;">Level</th>
+                                    <th>Opsi</th>
+                                    <th style="width:13%;">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for q in angka_game_questions %}
+                                <tr>
+                                    <td>{{ loop.index }}</td>
+                                    <td>{{ q.question_id }}</td>
+                                    <td>{{ q.display }}</td>
+                                    <td>Level {{ q.level }} ({{ q.number_in_level }})</td>
+                                    <td>{{ q.options | join(', ') }}</td>
+                                    <td style="white-space:nowrap;">
+                                        <button type="button" class="btn-edit" onclick="openSwapFromData(this)" data-game="angka" data-level="{{ q.level }}" data-order="{{ q.number_in_level }}">🔁 Ganti Soal</button>
+                                        <button type="button" class="btn-edit" onclick="editAngkaGameQuestion('{{ q.question_id }}')">✏ Edit</button>
+                                        <button type="button" class="btn-del" onclick="deleteAngkaGameQuestion('{{ q.question_id }}', this)">🗑 Hapus</button>
+                                    </td>
+                                </tr>
+                                {% else %}
+                                <tr><td colspan="6" style="text-align:center;color:#8a9bb5;padding:20px;">Belum ada data soal angka untuk hari ini.</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
-            {% else %}
-            <div class="soal-aktif-empty">
-                <div style="font-size:2.5rem;margin-bottom:10px;">📭</div>
-                <div style="font-size:1rem;font-weight:700;margin-bottom:6px;">Belum ada soal</div>
-                <div style="font-size:0.84rem;">Tambahkan soal baru melalui formulir di atas.</div>
-            </div>
-            {% endif %}
         </div>
+
 
     </div><!-- /content -->
 </div><!-- /frame -->
+
+<!-- Modal Ganti Soal Peta Petualangan -->
+<div id="modal-swap-question" class="modal hidden" style="display:none;">
+    <div class="modal-content" style="max-width:620px;">
+        <div class="modal-header" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+            <h2 style="margin:0;">Ganti Soal Peta Petualangan</h2>
+            <button type="button" onclick="closeSwapQuestionModal()" style="background:none;border:none;font-size:24px;cursor:pointer;color:#666;">&times;</button>
+        </div>
+        <form method="POST" action="{{ url_for('main.guru_ganti_soal_peta') }}">
+            <input type="hidden" name="game_key" id="swap-game-key">
+            <input type="hidden" name="level" id="swap-question-level">
+            <input type="hidden" name="question_order" id="swap-question-order">
+
+            <div style="margin-bottom:16px;">
+                <div style="margin-bottom:12px;">
+                    <label style="display:block;margin-bottom:6px;font-weight:bold;color:#333;">Pilih Soal Baru dari Daftar Soal</label>
+                    <select id="swap-question-select" name="question_id" onchange="updateSwapQuestionPreview()" required style="width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;">
+                        <option value="">-- Pilih soal dari Daftar Soal --</option>
+                        {% for q in question_bank_rows_all %}
+                        <option value="{{ q.id }}"
+                            data-game-key="{% if q.kategori == 'huruf' %}huruf{% elif q.kategori == 'angka' %}angka{% elif q.kategori in ['warna', 'bentuk_bangun_ruang'] %}warna{% else %}other{% endif %}"
+                            data-preview-src="{{ q._image_preview or q._option_image_a or q._option_image_b or q._option_image_c or '' }}"
+                            data-question-text="{{ q.pertanyaan | e }}">
+                            ID {{ q.id }} | {{ q.kategori | replace('_', ' ') | capitalize }} | Level {{ q.level or '-' }} | {{ q.pertanyaan or 'Tanpa pertanyaan' }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;">
+                    <div style="flex:1 1 240px;">
+                        <label style="display:block;margin-bottom:6px;font-weight:bold;color:#333;">Cari Soal</label>
+                        <input type="text" id="swap-question-search" oninput="filterSwapQuestionOptions()" placeholder="Cari ID, kategori, atau teks..." style="width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;">
+                    </div>
+                    <div style="flex:1 1 180px;">
+                        <label style="display:block;margin-bottom:6px;font-weight:bold;color:#333;">Filter Kategori</label>
+                        <select id="swap-question-game-filter" onchange="filterSwapQuestionOptions()" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;">
+                            <option value="all">Semua</option>
+                            <option value="huruf">Huruf</option>
+                            <option value="angka">Angka</option>
+                            <option value="warna">Warna / Bentuk</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="swap-question-preview" class="hidden" style="display:none;border:1px solid #e0e7ff;padding:14px;border-radius:10px;background:#f6f8ff;">
+                    <div style="display:flex;gap:14px;flex-wrap:wrap;align-items:flex-start;">
+                        <img id="swap-question-preview-image" src="" alt="Preview Gambar" style="max-height:120px;object-fit:contain;border-radius:10px;border:1px solid #d8e1ff;display:none;">
+                        <div style="flex:1;min-width:160px;">
+                            <div style="font-weight:700;margin-bottom:8px;color:#1f3f87;">Preview Soal Terpilih</div>
+                            <div id="swap-question-preview-text" style="font-size:0.94rem;color:#334155;line-height:1.45;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="display:flex;justify-content:flex-end;gap:12px;flex-wrap:wrap;">
+                <button type="button" class="btn-del" onclick="closeSwapQuestionModal()">Batal</button>
+                <button type="submit" class="btn-add">Ganti Soal</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Edit Soal Huruf Game -->
+<div id="modal-edit-huruf-game" class="modal hidden" style="display:none;">
+    <div class="modal-content" style="max-width:600px;">
+        <div class="modal-header" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+            <h2 style="margin:0;">Edit Soal Huruf - <span id="huruf-edit-question-id-display"></span></h2>
+            <button type="button" onclick="closeHurufEditModal()" style="background:none;border:none;font-size:24px;cursor:pointer;color:#666;">&times;</button>
+        </div>
+        
+        <div style="margin-bottom:15px;">
+            <p style="margin:0 0 5px 0;color:#666;font-size:14px;"><strong>Level:</strong> <span id="huruf-edit-level"></span></p>
+        </div>
+        
+        <form onsubmit="return saveHurufGameQuestionEdit()" enctype="multipart/form-data">
+            <div style="margin-bottom:15px;">
+                <label style="display:block;margin-bottom:5px;font-weight:bold;color:#333;">
+                    Pertanyaan
+                </label>
+                <input type="hidden" id="huruf-edit-question-id">
+                <div style="margin-bottom:10px;">
+                    <label style="display:block;margin-bottom:3px;color:#555;font-size:13px;">Huruf Tampilan</label>
+                    <input type="text" id="huruf-edit-display" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:4px;" placeholder="Masukkan huruf tampilan...">
+                </div>
+                <textarea id="huruf-edit-pertanyaan" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:4px;font-size:14px;" rows="3" placeholder="Masukkan pertanyaan..."></textarea>
+            </div>
+            
+            <div style="margin-bottom:15px;">
+                <label style="display:block;margin-bottom:5px;font-weight:bold;color:#333;">
+                    Opsi Jawaban
+                </label>
+                <div style="margin-bottom:10px;">
+                    <label style="display:block;margin-bottom:3px;color:#555;font-size:13px;">A:</label>
+                    <input type="text" id="huruf-edit-option-a" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:4px;" placeholder="Opsi A">
+                </div>
+                <div style="margin-bottom:10px;">
+                    <label style="display:block;margin-bottom:3px;color:#555;font-size:13px;">B:</label>
+                    <input type="text" id="huruf-edit-option-b" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:4px;" placeholder="Opsi B">
+                </div>
+                <div style="margin-bottom:10px;">
+                    <label style="display:block;margin-bottom:3px;color:#555;font-size:13px;">C:</label>
+                    <input type="text" id="huruf-edit-option-c" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:4px;" placeholder="Opsi C">
+                </div>
+                <div style="margin-bottom:10px;">
+                    <label style="display:block;margin-bottom:3px;color:#555;font-size:13px;">D:</label>
+                    <input type="text" id="huruf-edit-option-d" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:4px;" placeholder="Opsi D">
+                </div>
+            </div>
+
+            <div style="margin-bottom:15px;">
+                <label style="display:block;margin-bottom:5px;font-weight:bold;color:#333;">Upload Gambar</label>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                    <div>
+                        <label style="display:block;margin-bottom:3px;color:#555;font-size:13px;">Gambar Soal</label>
+                        <input type="file" id="huruf-edit-question-image" accept="image/*" style="width:100%;">
+                    </div>
+                    <div>
+                        <label style="display:block;margin-bottom:3px;color:#555;font-size:13px;">Gambar Opsi A</label>
+                        <input type="file" id="huruf-edit-option-a-image" accept="image/*" style="width:100%;">
+                    </div>
+                    <div>
+                        <label style="display:block;margin-bottom:3px;color:#555;font-size:13px;">Gambar Opsi B</label>
+                        <input type="file" id="huruf-edit-option-b-image" accept="image/*" style="width:100%;">
+                    </div>
+                    <div>
+                        <label style="display:block;margin-bottom:3px;color:#555;font-size:13px;">Gambar Opsi C</label>
+                        <input type="file" id="huruf-edit-option-c-image" accept="image/*" style="width:100%;">
+                    </div>
+                    <div style="grid-column: 1 / -1;">
+                        <label style="display:block;margin-bottom:3px;color:#555;font-size:13px;">Gambar Opsi D</label>
+                        <input type="file" id="huruf-edit-option-d-image" accept="image/*" style="width:100%;">
+                    </div>
+                </div>
+            </div>
+            
+            <div style="margin-bottom:20px;">
+                <label style="display:block;margin-bottom:5px;font-weight:bold;color:#333;">
+                    Jawaban Benar
+                </label>
+                <select id="huruf-edit-jawaban" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:4px;">
+                    <option value="">-- Pilih Jawaban --</option>
+                    <option value="A">A</option>
+                    <option value="B">B</option>
+                    <option value="C">C</option>
+                    <option value="D">D</option>
+                </select>
+            </div>
+            
+            <div style="display:flex;gap:10px;justify-content:flex-end;">
+                <button type="button" onclick="closeHurufEditModal()" style="padding:8px 16px;background:#f0f0f0;border:1px solid #ddd;border-radius:4px;cursor:pointer;">
+                    Batal
+                </button>
+                <button type="submit" style="padding:8px 16px;background:#2c5aa0;color:white;border:none;border-radius:4px;cursor:pointer;">
+                    Simpan
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal.hidden {
+    display: none !important;
+}
+
+.modal-content {
+    background: white;
+    padding: 24px;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    max-height: 90vh;
+    overflow-y: auto;
+}
+</style>
 
 <script>
     function switchTab(name, btn) {
@@ -1985,6 +2061,29 @@
         if (target) target.classList.add('active');
         if (btn) btn.classList.add('active');
     }
+
+    // Activate tab based on URL hash (e.g. #tab-guru or #guru)
+    function activateTabFromHash() {
+        var hash = (location.hash || '').trim();
+        if (!hash) return;
+        var name = null;
+        if (hash.indexOf('#tab-') === 0) {
+            name = hash.slice(5);
+        } else if (hash.indexOf('#') === 0) {
+            name = hash.slice(1);
+        }
+        if (!name) return;
+
+        var btn = Array.from(document.querySelectorAll('.tab-btn')).find(function(b) {
+            var attr = b.getAttribute('onclick') || '';
+            return attr.indexOf("switchTab('" + name + "'") !== -1 || attr.indexOf('switchTab(\"' + name + '\"') !== -1;
+        });
+
+        try { switchTab(name, btn); } catch (e) { /* ignore */ }
+    }
+
+    window.addEventListener('DOMContentLoaded', activateTabFromHash);
+    window.addEventListener('hashchange', activateTabFromHash);
 
     function filterTable(tableId, query) {
         var q = (query || '').toLowerCase();
@@ -2027,6 +2126,12 @@
         panel.classList.toggle('hidden');
     }
 
+    function toggleTambahSoal() {
+        const panel = document.getElementById('panel-tambah-soal');
+        if (!panel) return;
+        panel.classList.toggle('hidden');
+    }
+
     function toggleEditMateri(materiId) {
         const row = document.getElementById('edit-materi-row-' + materiId);
         if (!row) return;
@@ -2037,6 +2142,359 @@
         const row = document.getElementById('edit-bank-soal-row-' + questionId);
         if (!row) return;
         row.style.display = row.style.display === 'none' ? 'table-row' : 'none';
+    }
+
+    function openSwapQuestionModal(gameKey, level, order) {
+        const modal = document.getElementById('modal-swap-question');
+        const gameInput = document.getElementById('swap-game-key');
+        const levelInput = document.getElementById('swap-question-level');
+        const orderInput = document.getElementById('swap-question-order');
+        const filterInput = document.getElementById('swap-question-game-filter');
+        const select = document.getElementById('swap-question-select');
+        if (!modal || !gameInput || !levelInput || !orderInput || !filterInput || !select) return;
+
+        gameInput.value = gameKey;
+        levelInput.value = level;
+        orderInput.value = order;
+        filterInput.value = gameKey;
+        select.value = '';
+        filterSwapQuestionOptions();
+        updateSwapQuestionPreview();
+
+        modal.classList.remove('hidden');
+        modal.style.display = 'flex';
+        select.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    function openSwapFromData(el) {
+        if (!el) return;
+        var game = el.getAttribute('data-game') || '';
+        var level = parseInt(el.getAttribute('data-level') || '0', 10) || 0;
+        var order = parseInt(el.getAttribute('data-order') || '0', 10) || 0;
+        openSwapQuestionModal(game, level, order);
+    }
+
+    function closeSwapQuestionModal() {
+        const modal = document.getElementById('modal-swap-question');
+        if (!modal) return;
+        modal.classList.add('hidden');
+        modal.style.display = 'none';
+    }
+
+    function filterSwapQuestionOptions() {
+        const searchValue = (document.getElementById('swap-question-search')?.value || '').toLowerCase();
+        const categoryValue = (document.getElementById('swap-question-game-filter')?.value || 'all');
+        const select = document.getElementById('swap-question-select');
+        if (!select) return;
+
+        let visibleFound = false;
+        Array.from(select.options).forEach((option, index) => {
+            if (index === 0) {
+                option.hidden = false;
+                return;
+            }
+            const optionText = (option.textContent || '').toLowerCase();
+            const optionCategory = option.getAttribute('data-game-key') || '';
+            const matchesCategory = categoryValue === 'all' || optionCategory === categoryValue;
+            const matchesSearch = !searchValue || optionText.includes(searchValue);
+            const visible = matchesCategory && matchesSearch;
+            option.hidden = !visible;
+            if (visible && option.value === select.value) {
+                visibleFound = true;
+            }
+        });
+
+        if (!visibleFound) {
+            select.value = '';
+        }
+
+        updateSwapQuestionPreview();
+    }
+
+    function updateSwapQuestionPreview() {
+        const select = document.getElementById('swap-question-select');
+        const preview = document.getElementById('swap-question-preview');
+        const image = document.getElementById('swap-question-preview-image');
+        const text = document.getElementById('swap-question-preview-text');
+        if (!select || !preview || !image || !text) return;
+
+        const selected = select.options[select.selectedIndex];
+        if (!selected || !selected.value) {
+            preview.classList.add('hidden');
+            preview.style.display = 'none';
+            image.src = '';
+            image.style.display = 'none';
+            text.textContent = '';
+            return;
+        }
+
+        const previewSrc = selected.getAttribute('data-preview-src') || '';
+        const questionText = selected.getAttribute('data-question-text') || selected.textContent || '';
+
+        if (previewSrc) {
+            image.src = previewSrc;
+            image.style.display = 'block';
+        } else {
+            image.style.display = 'none';
+        }
+
+        text.textContent = questionText;
+        preview.classList.remove('hidden');
+        preview.style.display = 'block';
+    }
+
+    function editHurufGameQuestion(questionId) {
+        // Find the row with this question
+        const row = Array.from(document.querySelectorAll('table tbody tr')).find(tr => {
+            const idCell = tr.querySelector('td:nth-child(2)');
+            return idCell && idCell.textContent.trim() === questionId;
+        });
+        
+        if (!row) {
+            alert('Soal tidak ditemukan');
+            return false;
+        }
+        
+        // Extract data from row
+        const cells = row.querySelectorAll('td');
+        const rowData = {
+            question_id: cells[1].textContent.trim(),
+            display: cells[2].textContent.trim(),
+            level: cells[3].textContent.trim(),
+            options: cells[4].textContent.trim().split(', ')
+        };
+        
+        // Open modal and populate with data
+        openHurufEditModal(rowData);
+        return false;
+    }
+
+    function editAngkaGameQuestion(questionId) {
+        const match = /^db-(\d+)-\d+$/.exec(questionId);
+        if (!match) {
+            alert('ID soal angka tidak valid untuk edit.');
+            return false;
+        }
+        const questionRowId = match[1];
+        const row = document.getElementById('edit-bank-soal-row-' + questionRowId);
+        if (!row) {
+            alert('Soal angka ini belum tersedia di Kelola Soal, silakan cari di tab Kelola Soal.');
+            return false;
+        }
+        if (row.style.display === 'none') {
+            row.style.display = 'table-row';
+        }
+        row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return false;
+    }
+
+    function deleteAngkaGameQuestion(questionId, button) {
+        if (!confirm('Hapus soal angka ini dari daftar soal game hari ini?')) {
+            return false;
+        }
+
+        fetch('/guru-dashboard/peta-soal/hapus-angka/' + encodeURIComponent(questionId), {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const row = button.closest('tr');
+                if (row) {
+                    row.remove();
+                }
+                alert('Soal angka berhasil dihapus dari game hari ini.');
+            } else {
+                alert('Error: ' + (data.message || 'Gagal menghapus soal angka')); 
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Gagal menghubungi server');
+        });
+
+        return false;
+    }
+
+    function editWarnaBentukGameQuestion(questionId) {
+        // Similar to angka: try to open the corresponding Kelola Soal row if available
+        const match = /^db-(\d+)-\d+$/.exec(questionId);
+        if (!match) {
+            alert('ID soal Warna/Bentuk tidak valid untuk edit.');
+            return false;
+        }
+        const questionRowId = match[1];
+        const row = document.getElementById('edit-bank-soal-row-' + questionRowId);
+        if (!row) {
+            alert('Soal ini belum tersedia di Kelola Soal, silakan cari di tab Kelola Soal.');
+            return false;
+        }
+        if (row.style.display === 'none') {
+            row.style.display = 'table-row';
+        }
+        row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return false;
+    }
+
+    function deleteWarnaBentukGameQuestion(questionId, button) {
+        if (!confirm('Hapus soal ini dari daftar game Warna/Bentuk hari ini?')) {
+            return false;
+        }
+
+        fetch('/guru-dashboard/peta-soal/hapus-warna/' + encodeURIComponent(questionId), {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const row = button.closest('tr');
+                if (row) {
+                    row.remove();
+                }
+                alert('Soal berhasil dihapus dari game Warna/Bentuk hari ini.');
+            } else {
+                alert('Error: ' + (data.message || 'Gagal menghapus soal')); 
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Gagal menghubungi server');
+        });
+
+        return false;
+    }
+    
+    function openHurufEditModal(data) {
+        const modal = document.getElementById('modal-edit-huruf-game');
+        if (!modal) {
+            alert('Modal tidak ditemukan');
+            return;
+        }
+        
+        // Populate modal with current data
+        document.getElementById('huruf-edit-question-id').value = data.question_id;
+        document.getElementById('huruf-edit-question-id-display').textContent = data.question_id;
+        document.getElementById('huruf-edit-level').textContent = data.level;
+        document.getElementById('huruf-edit-display').value = data.display || '';
+        
+        // Pre-fill options if available (they are from the options column)
+        const optionInputs = document.querySelectorAll('[id^="huruf-edit-option-"]');
+        data.options.forEach((opt, idx) => {
+            if (optionInputs[idx]) {
+                optionInputs[idx].value = opt.trim();
+            }
+        });
+        
+        // Show modal
+        modal.classList.remove('hidden');
+        modal.style.display = 'block';
+    }
+    
+    function closeHurufEditModal() {
+        const modal = document.getElementById('modal-edit-huruf-game');
+        if (modal) {
+            modal.classList.add('hidden');
+            modal.style.display = 'none';
+        }
+    }
+    
+    function saveHurufGameQuestionEdit() {
+        const questionId = document.getElementById('huruf-edit-question-id').value;
+        const option_a = document.getElementById('huruf-edit-option-a').value.trim();
+        const option_b = document.getElementById('huruf-edit-option-b').value.trim();
+        const option_c = document.getElementById('huruf-edit-option-c').value.trim();
+        const option_d = document.getElementById('huruf-edit-option-d').value.trim();
+        const display_value = document.getElementById('huruf-edit-display').value.trim();
+        const jawaban_benar = document.getElementById('huruf-edit-jawaban').value.trim();
+        const pertanyaan = document.getElementById('huruf-edit-pertanyaan').value.trim();
+        const questionImageInput = document.getElementById('huruf-edit-question-image');
+        const optionAImageInput = document.getElementById('huruf-edit-option-a-image');
+        const optionBImageInput = document.getElementById('huruf-edit-option-b-image');
+        const optionCImageInput = document.getElementById('huruf-edit-option-c-image');
+        const optionDImageInput = document.getElementById('huruf-edit-option-d-image');
+        
+        if (!option_a || !option_b || !option_c || !option_d) {
+            alert('Semua opsi harus diisi!');
+            return false;
+        }
+        if (!display_value) {
+            alert('Huruf tampilan tidak boleh kosong.');
+            return false;
+        }
+        
+        if (!jawaban_benar || !['A', 'B', 'C', 'D'].includes(jawaban_benar.toUpperCase())) {
+            alert('Jawaban harus A, B, C, atau D');
+            return false;
+        }
+        
+        // Create FormData
+        const formData = new FormData();
+        formData.append('display', display_value);
+        formData.append('pertanyaan', pertanyaan);
+        formData.append('pilihan_a', option_a);
+        formData.append('pilihan_b', option_b);
+        formData.append('pilihan_c', option_c);
+        formData.append('pilihan_d', option_d);
+        formData.append('jawaban_benar', jawaban_benar.toUpperCase());
+        if (questionImageInput && questionImageInput.files.length > 0) {
+            formData.append('image_question_file', questionImageInput.files[0]);
+        }
+        if (optionAImageInput && optionAImageInput.files.length > 0) {
+            formData.append('image_option_a_file', optionAImageInput.files[0]);
+        }
+        if (optionBImageInput && optionBImageInput.files.length > 0) {
+            formData.append('image_option_b_file', optionBImageInput.files[0]);
+        }
+        if (optionCImageInput && optionCImageInput.files.length > 0) {
+            formData.append('image_option_c_file', optionCImageInput.files[0]);
+        }
+        if (optionDImageInput && optionDImageInput.files.length > 0) {
+            formData.append('image_option_d_file', optionDImageInput.files[0]);
+        }
+        
+        // Send to backend
+        fetch('/guru-dashboard/bank-soal/edit/' + encodeURIComponent(questionId), {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json'
+            },
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Soal berhasil disimpan!');
+                closeHurufEditModal();
+                // Reload page to see changes
+                location.reload();
+            } else {
+                alert('Error: ' + (data.message || 'Gagal menyimpan'));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Gagal menghubungi server');
+        });
+        
+        return false;
+    }
+
+    function deleteHurufGameQuestion(questionId, button) {
+        if (!confirm('Hapus soal ' + questionId + ' dari daftar soal huruf hari ini?')) {
+            return false;
+        }
+        const row = button.closest('tr');
+        if (row) {
+            row.remove();
+        }
+        alert('Soal telah dihapus dari tampilan daftar ini. Untuk perubahan permanen, kelola soal di panel Kelola Soal.');
+        return false;
     }
 
     function filterAdventureQuestionOptions() {
@@ -2153,6 +2611,31 @@
     filterAdventureQuestionOptions();
     filterDailyMissionQuestionOptions();
     updateAssignToFields();
+
+    function openAdventureSlotEdit(gameKey, level, order, questionId) {
+        try {
+            var gameSelect = document.getElementById('adventure-game-select');
+            if (gameSelect) gameSelect.value = gameKey;
+
+            var levelSelect = document.querySelector('select[name="level"]');
+            var orderSelect = document.querySelector('select[name="question_order"]');
+            if (levelSelect) levelSelect.value = level;
+            if (orderSelect) orderSelect.value = order;
+
+            // refresh options and set question
+            filterAdventureQuestionOptions();
+            var qsel = document.getElementById('adventure-question-select');
+            if (qsel) {
+                qsel.value = questionId || '';
+                updateQuestionPreview('adventure-question-select', 'adventure-question-preview');
+            }
+
+            // scroll to the top form
+            if (gameSelect) gameSelect.scrollIntoView({behavior: 'smooth', block: 'center'});
+        } catch (e) {
+            console.error('[AdventureEdit]', e);
+        }
+    }
 
     function filterSoalAktif() {
         const contextFilter = document.getElementById('soal-aktif-context-filter');

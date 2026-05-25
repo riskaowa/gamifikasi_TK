@@ -73,6 +73,8 @@ def _ensure_schema_compatibility():
             soal_pending_alters.append("ALTER TABLE soal ADD COLUMN image_option_c TEXT")
         if 'image_option_d' not in soal_existing_cols:
             soal_pending_alters.append("ALTER TABLE soal ADD COLUMN image_option_d TEXT")
+        if 'level' not in soal_existing_cols:
+            soal_pending_alters.append("ALTER TABLE soal ADD COLUMN level INTEGER NOT NULL DEFAULT 1")
         if 'use_in_daily_mission' not in soal_existing_cols:
             soal_pending_alters.append("ALTER TABLE soal ADD COLUMN use_in_daily_mission BOOLEAN NOT NULL DEFAULT 1")
         if 'use_in_adventure_map' not in soal_existing_cols:
@@ -150,7 +152,10 @@ def create_app():
         return User.query.get(int(user_id))
 
     from app.routes import main as main_blueprint
+    from app.question_bank import question_bp
+
     app.register_blueprint(main_blueprint)
+    app.register_blueprint(question_bp)
 
     with app.app_context():
         db.create_all()
