@@ -1,0 +1,977 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fitur & Panduan Penggunaan - Gamifikasi PAUD</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='gamification.css') }}">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Bubblegum Sans', cursive;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px 0;
+        }
+
+        .features-header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 20px 0;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .features-header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .features-brand {
+            font-family: 'Fredoka One', cursive;
+            color: #19396b;
+            font-size: 1.5rem;
+            letter-spacing: 1px;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .features-brand:hover {
+            color: #667eea;
+        }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background-color: #667eea;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 999px;
+            text-decoration: none;
+            font-weight: 700;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            font-family: 'Bubblegum Sans', cursive;
+            font-size: 1rem;
+        }
+
+        .back-btn:hover {
+            background-color: #764ba2;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .features-container {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .features-title {
+            text-align: center;
+            color: white;
+            margin-bottom: 50px;
+            animation: slideDown 0.6s ease;
+        }
+
+        .features-title h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .features-title p {
+            font-size: 1.1rem;
+            opacity: 0.95;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-bottom: 60px;
+        }
+
+        .feature-card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            animation: fadeInUp 0.6s ease forwards;
+            opacity: 0;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .feature-card:nth-child(1) { animation-delay: 0.1s; }
+        .feature-card:nth-child(2) { animation-delay: 0.2s; }
+        .feature-card:nth-child(3) { animation-delay: 0.3s; }
+        .feature-card:nth-child(4) { animation-delay: 0.4s; }
+        .feature-card:nth-child(5) { animation-delay: 0.5s; }
+        .feature-card:nth-child(6) { animation-delay: 0.6s; }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+        }
+
+        .feature-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            font-size: 2.5rem;
+        }
+
+        .feature-card h3 {
+            color: #19396b;
+            font-size: 1.4rem;
+            margin-bottom: 15px;
+        }
+
+        .feature-card p {
+            color: #555;
+            line-height: 1.6;
+            font-size: 0.95rem;
+        }
+
+        .guide-section {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 40px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            animation: fadeInUp 0.8s ease 0.7s forwards;
+            opacity: 0;
+        }
+
+        .guide-section h2 {
+            color: #19396b;
+            font-size: 2rem;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid #667eea;
+        }
+
+        .guide-step {
+            margin-bottom: 30px;
+            padding-left: 40px;
+            position: relative;
+        }
+
+        .guide-step::before {
+            content: attr(data-step);
+            position: absolute;
+            left: 0;
+            width: 35px;
+            height: 35px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+
+        .guide-step h4 {
+            color: #19396b;
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+        }
+
+        .guide-step p {
+            color: #666;
+            line-height: 1.6;
+            font-size: 0.95rem;
+        }
+
+        .guide-step ul {
+            list-style: none;
+            margin-top: 10px;
+        }
+
+        .guide-step li {
+            color: #666;
+            padding: 8px 0;
+            padding-left: 20px;
+            position: relative;
+        }
+
+        .guide-step li::before {
+            content: "→";
+            position: absolute;
+            left: 0;
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        .feature-list {
+            display: grid;
+            gap: 15px;
+        }
+
+        .feature-item {
+            background: #f8f9fa;
+            padding: 15px 20px;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+            color: #555;
+        }
+
+        .feature-item strong {
+            color: #19396b;
+        }
+
+        .tips-box {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 30px;
+            border-left: 5px solid #ff9970;
+        }
+
+        .tips-box h4 {
+            color: #d35400;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+
+        .tips-box p {
+            color: #8b5a2b;
+            line-height: 1.6;
+        }
+
+        .user-types {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .user-type-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .user-type-card h4 {
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .user-type-card ul {
+            list-style: none;
+        }
+
+        .user-type-card li {
+            padding: 8px 0;
+            padding-left: 20px;
+            position: relative;
+        }
+
+        .user-type-card li::before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            font-weight: bold;
+        }
+
+        .footer {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px 20px;
+            text-align: center;
+            border-top: 2px solid #667eea;
+            margin-top: 60px;
+        }
+
+        .footer-text {
+            color: #666;
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        .footer-link {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 700;
+        }
+
+        .footer-link:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            .features-header-content {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .features-title h1 {
+                font-size: 1.8rem;
+            }
+
+            .guide-section {
+                padding: 25px;
+            }
+
+            .guide-section h2 {
+                font-size: 1.5rem;
+            }
+
+            .features-grid {
+                gap: 20px;
+            }
+
+            .feature-card {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="features-header">
+        <div class="features-header-content">
+            <a href="{{ url_for('main.index') }}" class="features-brand">
+                <span>🏠</span>
+                GAMIFIKASI PAUD
+            </a>
+            <a href="{{ url_for('main.index') }}" class="back-btn">
+                ← Kembali ke Beranda
+            </a>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="features-container">
+        <!-- Title -->
+        <div class="features-title">
+            <h1>🎮 Fitur & Panduan Penggunaan</h1>
+            <p>Pelajari semua fitur aplikasi Gamifikasi PAUD dan cara menggunakannya dengan efektif</p>
+        </div>
+
+        <!-- Features Grid -->
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">🎯</div>
+                <h3>Game Interaktif</h3>
+                <p>Tiga game menarik untuk belajar huruf, angka, dan warna serta bentuk dengan cara yang menyenangkan dan gamified.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">📊</div>
+                <h3>Dashboard Progres</h3>
+                <p>Pantau perkembangan belajar anak secara real-time dengan statistik detail dan visualisasi yang mudah dipahami.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">🏆</div>
+                <h3>Sistem Badge & Reward</h3>
+                <p>Dapatkan badge dan reward untuk setiap pencapaian, meningkatkan motivasi belajar anak dengan reward system yang menarik.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">📚</div>
+                <h3>Materi Pembelajaran</h3>
+                <p>Akses materi pembelajaran interaktif dengan visual yang menarik untuk membantu memahami konsep dasar sebelum bermain.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">🗺️</div>
+                <h3>Peta Petualangan</h3>
+                <p>Jelajahi peta interaktif dengan misi-misi menarik yang membuat proses belajar menjadi petualangan yang seru.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">🎁</div>
+                <h3>Misi Harian</h3>
+                <p>Selesaikan misi harian untuk mendapatkan poin bonus dan mempertahankan kebiasaan belajar yang konsisten setiap hari.</p>
+            </div>
+        </div>
+
+        <!-- User Types Guide -->
+        <div class="guide-section">
+            <h2>👥 Panduan Berdasarkan Jenis Pengguna</h2>
+            
+            <div class="user-types">
+                <div class="user-type-card">
+                    <h4>👧 Anak (Murid)</h4>
+                    <ul>
+                        <li>Bermain 3 game edukatif</li>
+                        <li>Mengumpulkan badge dan rewards</li>
+                        <li>Melihat progres pribadi</li>
+                        <li>Mengikuti leaderboard</li>
+                        <li>Menyelesaikan misi harian</li>
+                        <li>Melihat sertifikat pencapaian</li>
+                    </ul>
+                </div>
+
+                <div class="user-type-card">
+                    <h4>👨‍🏫 Guru</h4>
+                    <ul>
+                        <li>Mengelola daftar murid</li>
+                        <li>Melihat progres semua murid</li>
+                        <li>Membuat soal kustom</li>
+                        <li>Memonitor aktivitas belajar</li>
+                        <li>Memberikan catatan untuk murid</li>
+                        <li>Mengatur akses game</li>
+                    </ul>
+                </div>
+
+                <div class="user-type-card">
+                    <h4>👨‍👩‍👧 Orang Tua</h4>
+                    <ul>
+                        <li>Memantau progres anak</li>
+                        <li>Melihat statistik belajar</li>
+                        <li>Melacak pencapaian badge</li>
+                        <li>Membaca catatan dari guru</li>
+                        <li>Melihat grafik kemajuan</li>
+                        <li>Komunikasi dengan guru</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- How to Play Games -->
+        <div class="guide-section">
+            <h2>🎮 Cara Bermain Game</h2>
+
+            <div class="guide-step" data-step="1">
+                <h4>Persiapan Awal</h4>
+                <p>Pastikan anak sudah terdaftar dan login ke aplikasi. Pilih level yang sesuai dengan kemampuan anak.</p>
+            </div>
+
+            <div class="guide-step" data-step="2">
+                <h4>Memilih Game</h4>
+                <p>Tersedia 3 game utama:</p>
+                <ul>
+                    <li><strong>Game Huruf:</strong> Belajar mengenali dan menulis huruf alfabet</li>
+                    <li><strong>Game Angka:</strong> Belajar mengenal angka dan konsep dasar matematika</li>
+                    <li><strong>Game Warna & Bentuk:</strong> Mengenali warna, bentuk, dan konsep spasial</li>
+                </ul>
+            </div>
+
+            <div class="guide-step" data-step="3">
+                <h4>Memahami Mekanik Game</h4>
+                <p>Setiap game memiliki mekanik berbeda-beda:</p>
+                <ul>
+                    <li>Jawab pertanyaan dengan benar untuk mendapatkan poin</li>
+                    <li>Kerjakan dalam waktu yang ditetapkan</li>
+                    <li>Semakin cepat dan akurat, semakin besar poin yang didapat</li>
+                    <li>Naik level untuk tantangan yang lebih sulit</li>
+                </ul>
+            </div>
+
+            <div class="guide-step" data-step="4">
+                <h4>Sistem Scoring</h4>
+                <p>Poin dihitung berdasarkan:</p>
+                <ul>
+                    <li>Akurasi jawaban (benar/salah)</li>
+                    <li>Kecepatan menjawab dalam waktu terbatas</li>
+                    <li>Bonus untuk jawaban berturut-turut benar</li>
+                    <li>Perkalian poin berdasarkan level kesulitan</li>
+                </ul>
+            </div>
+
+            <div class="tips-box">
+                <h4>💡 Tips Bermain Game</h4>
+                <p>
+                    • Mulai dari level 1 untuk memahami mekanik dasar<br>
+                    • Ulang level jika merasa belum menguasai<br>
+                    • Gunakan materi pembelajaran sebelum bermain<br>
+                    • Istirahat jika merasa lelah untuk hasil maksimal<br>
+                    • Mainkan secara konsisten untuk hasil terbaik
+                </p>
+            </div>
+        </div>
+
+        <!-- Dashboard Guide -->
+        <div class="guide-section">
+            <h2>📊 Menggunakan Dashboard & Progres</h2>
+
+            <div class="guide-step" data-step="1">
+                <h4>Dashboard Murid</h4>
+                <p>Halaman utama anak setelah login menampilkan:</p>
+                <div class="feature-list">
+                    <div class="feature-item"><strong>Statistik Harian:</strong> Total poin, game dimainkan, dan akurasi</div>
+                    <div class="feature-item"><strong>Level Saat Ini:</strong> Progress di setiap game</div>
+                    <div class="feature-item"><strong>Badge & Reward:</strong> Koleksi badge yang sudah dikumpulkan</div>
+                    <div class="feature-item"><strong>Menu Game:</strong> Akses cepat ke 3 game utama</div>
+                    <div class="feature-item"><strong>Misi Harian:</strong> Misi yang harus diselesaikan hari ini</div>
+                </div>
+            </div>
+
+            <div class="guide-step" data-step="2">
+                <h4>Halaman Progres</h4>
+                <p>Lihat detail progres pembelajaran dengan:</p>
+                <ul>
+                    <li>Grafik perkembangan harian</li>
+                    <li>Statistik per game (akurasi, skor tertinggi)</li>
+                    <li>Target mingguan dan pencapaiannya</li>
+                    <li>Riwayat game yang dimainkan</li>
+                </ul>
+            </div>
+
+            <div class="guide-step" data-step="3">
+                <h4>Leaderboard</h4>
+                <p>Lihat peringkat pemain lain dan kompetisi sehat dengan fitur:</p>
+                <ul>
+                    <li>Peringkat global pemain</li>
+                    <li>Total poin dan akurasi</li>
+                    <li>Badge yang dikumpulkan</li>
+                    <li>Filter berdasarkan game</li>
+                </ul>
+            </div>
+
+            <div class="tips-box">
+                <h4>💡 Tips Menggunakan Dashboard</h4>
+                <p>
+                    • Periksa progres secara berkala untuk memotivasi diri<br>
+                    • Gunakan statistik untuk melihat area yang perlu diperbaiki<br>
+                    • Kompetisi di leaderboard dapat meningkatkan semangat<br>
+                    • Target mingguan membantu menjaga konsistensi belajar
+                </p>
+            </div>
+        </div>
+
+        <!-- Badge & Achievement -->
+        <div class="guide-section">
+            <h2>🏆 Sistem Badge dan Pencapaian</h2>
+
+            <div class="guide-step" data-step="1">
+                <h4>Jenis-Jenis Badge</h4>
+                <p>Ada berbagai kategori badge yang dapat dikumpulkan:</p>
+                <ul>
+                    <li><strong>Badge Level:</strong> Diperoleh saat menyelesaikan level tertentu di game</li>
+                    <li><strong>Badge Prestasi:</strong> Diperoleh saat mencapai target poin tertentu</li>
+                    <li><strong>Badge Konsistensi:</strong> Diperoleh saat belajar berturut-turut beberapa hari</li>
+                    <li><strong>Badge Khusus:</strong> Diperoleh saat mencapai pencapaian istimewa</li>
+                </ul>
+            </div>
+
+            <div class="guide-step" data-step="2">
+                <h4>Cara Mendapatkan Badge</h4>
+                <p>Untuk mendapatkan badge, anak harus:</p>
+                <ul>
+                    <li>Menyelesaikan misi dan challenge</li>
+                    <li>Mencapai skor tertentu di game</li>
+                    <li>Menjaga konsistensi belajar harian</li>
+                    <li>Naik ke level berikutnya</li>
+                    <li>Mencapai akurasi tinggi</li>
+                </ul>
+            </div>
+
+            <div class="guide-step" data-step="3">
+                <h4>Melihat & Berbagi Badge</h4>
+                <p>Setiap badge dapat dilihat di:</p>
+                <ul>
+                    <li>Halaman Badge pribadi</li>
+                    <li>Dashboard utama</li>
+                    <li>Profil di leaderboard</li>
+                    <li>Sertifikat pencapaian</li>
+                </ul>
+            </div>
+
+            <div class="tips-box">
+                <h4>💡 Tips Mengumpulkan Badge</h4>
+                <p>
+                    • Fokus pada 1-2 badge dalam satu periode<br>
+                    • Pahami syarat mendapatkan setiap badge<br>
+                    • Kumpulkan badge khusus untuk pencapaian ekstra<br>
+                    • Bagikan pencapaian dengan teman dan keluarga
+                </p>
+            </div>
+        </div>
+
+        <!-- Daily Mission -->
+        <div class="guide-section">
+            <h2>🎁 Misi Harian dan Reward</h2>
+
+            <div class="guide-step" data-step="1">
+                <h4>Apa itu Misi Harian?</h4>
+                <p>Misi harian adalah tantangan khusus yang harus diselesaikan setiap harinya. Setiap misi memberikan reward dan bonus poin tambahan ketika diselesaikan dengan sempurna.</p>
+            </div>
+
+            <div class="guide-step" data-step="2">
+                <h4>Jenis-Jenis Misi</h4>
+                <p>Misi harian dapat berupa:</p>
+                <ul>
+                    <li><strong>Misi Soal Spesifik:</strong> Jawab pertanyaan dengan akurasi tinggi</li>
+                    <li><strong>Misi Target Poin:</strong> Kumpulkan poin tertentu</li>
+                    <li><strong>Misi Konsistensi:</strong> Mainkan game minimal X kali</li>
+                    <li><strong>Misi Akurasi:</strong> Capai akurasi minimum tertentu</li>
+                </ul>
+            </div>
+
+            <div class="guide-step" data-step="3">
+                <h4>Cara Menyelesaikan Misi</h4>
+                <p>Untuk menyelesaikan misi:</p>
+                <ul>
+                    <li>Baca deskripsi misi dengan teliti</li>
+                    <li>Pahami target yang harus dicapai</li>
+                    <li>Mainkan game sesuai dengan requirement misi</li>
+                    <li>Sistem otomatis akan mendeteksi penyelesaian misi</li>
+                    <li>Dapatkan reward langsung setelah menyelesaikan</li>
+                </ul>
+            </div>
+
+            <div class="tips-box">
+                <h4>💡 Tips Misi Harian</h4>
+                <p>
+                    • Periksa misi baru setiap hari di pagi hari<br>
+                    • Prioritaskan misi dengan reward terbesar<br>
+                    • Manfaatkan misi untuk memotivasi belajar<br>
+                    • Jangan lupa untuk menyelesaikan misi sebelum tengah malam
+                </p>
+            </div>
+        </div>
+
+        <!-- Material Learning -->
+        <div class="guide-section">
+            <h2>📚 Menggunakan Materi Pembelajaran</h2>
+
+            <div class="guide-step" data-step="1">
+                <h4>Jenis Materi yang Tersedia</h4>
+                <p>Aplikasi menyediakan materi pembelajaran interaktif untuk:</p>
+                <div class="feature-list">
+                    <div class="feature-item"><strong>Materi Huruf:</strong> Pengenalan alfabet dan cara penulisan</div>
+                    <div class="feature-item"><strong>Materi Angka:</strong> Pengenalan angka 0-10 dan konsep dasar bilangan</div>
+                    <div class="feature-item"><strong>Materi Warna & Bentuk:</strong> Pengenalan warna dan bentuk geometri dasar</div>
+                </div>
+            </div>
+
+            <div class="guide-step" data-step="2">
+                <h4>Cara Menggunakan Materi</h4>
+                <p>Untuk memanfaatkan materi pembelajaran:</p>
+                <ul>
+                    <li>Buka menu Materi dari dashboard</li>
+                    <li>Pilih topik yang ingin dipelajari</li>
+                    <li>Ikuti penjelasan interaktif dengan visual menarik</li>
+                    <li>Dengarkan audio/narasi yang menjelaskan konsep</li>
+                    <li>Ulangi materi jika belum memahami</li>
+                </ul>
+            </div>
+
+            <div class="guide-step" data-step="3">
+                <h4>Tips Efektif Belajar</h4>
+                <p>Untuk hasil belajar yang optimal:</p>
+                <ul>
+                    <li>Pelajari materi SEBELUM bermain game</li>
+                    <li>Konsentrasikan perhatian saat menonton materi</li>
+                    <li>Ulang materi jika skor game rendah</li>
+                    <li>Belajar dalam porsi kecil (5-10 menit)</li>
+                </ul>
+            </div>
+
+            <div class="tips-box">
+                <h4>💡 Urutan Belajar yang Disarankan</h4>
+                <p>
+                    1. Tonton materi pembelajaran<br>
+                    2. Ulangi materi jika perlu<br>
+                    3. Mainkan game dengan level 1<br>
+                    4. Tingkatkan level setelah menguasai<br>
+                    5. Tonton kembali materi untuk memperkuat pemahaman
+                </p>
+            </div>
+        </div>
+
+        <!-- Map Adventure -->
+        <div class="guide-section">
+            <h2>🗺️ Peta Petualangan dan Eksplorasi</h2>
+
+            <div class="guide-step" data-step="1">
+                <h4>Memahami Peta Petualangan</h4>
+                <p>Peta Petualangan adalah fitur gamifikasi yang membuat belajar terasa seperti menjelajahi dunia baru. Setiap lokasi di peta mewakili sebuah stage dengan tantangan berbeda.</p>
+            </div>
+
+            <div class="guide-step" data-step="2">
+                <h4>Cara Menggunakan Peta</h4>
+                <p>Untuk menjelajahi peta petualangan:</p>
+                <ul>
+                    <li>Klik menu "Peta Petualangan" dari dashboard</li>
+                    <li>Mulai dari lokasi awal yang sudah terbuka</li>
+                    <li>Selesaikan challenge di setiap lokasi</li>
+                    <li>Buka lokasi baru setelah menyelesaikan lokasi saat ini</li>
+                    <li>Kumpulkan reward dan treasure di setiap lokasi</li>
+                </ul>
+            </div>
+
+            <div class="guide-step" data-step="3">
+                <h4>Strategi Penjelajahan</h4>
+                <p>Untuk perjalanan yang sukses:</p>
+                <ul>
+                    <li>Jangan terburu-buru untuk pindah ke lokasi berikutnya</li>
+                    <li>Kuasai setiap lokasi sebelum melanjutkan</li>
+                    <li>Kumpulkan semua reward di setiap lokasi</li>
+                    <li>Replay level-level untuk meningkatkan skor</li>
+                </ul>
+            </div>
+
+            <div class="tips-box">
+                <h4>💡 Tips Petualangan</h4>
+                <p>
+                    • Peta petualangan mendorong progres yang stabil<br>
+                    • Setiap lokasi baru membuka seiring dengan pencapaian<br>
+                    • Treasure di setiap lokasi memberikan bonus reward<br>
+                    • Sistem ini membuat belajar lebih terstruktur dan termotivasi
+                </p>
+            </div>
+        </div>
+
+        <!-- Guru Dashboard -->
+        <div class="guide-section">
+            <h2>👨‍🏫 Panduan untuk Guru</h2>
+
+            <div class="guide-step" data-step="1">
+                <h4>Mengelola Murid</h4>
+                <p>Sebagai guru, Anda dapat:</p>
+                <ul>
+                    <li>Melihat daftar semua murid yang didaftarkan</li>
+                    <li>Memantau progres belajar setiap murid</li>
+                    <li>Memberikan catatan untuk murid individual</li>
+                    <li>Melihat statistik kehadiran dan aktivitas</li>
+                    <li>Mengelola akses game untuk murid</li>
+                </ul>
+            </div>
+
+            <div class="guide-step" data-step="2">
+                <h4>Membuat Soal Kustom</h4>
+                <p>Untuk membuat soal yang lebih personal:</p>
+                <ul>
+                    <li>Akses menu "Bank Soal" di guru dashboard</li>
+                    <li>Upload soal dengan format yang ditentukan</li>
+                    <li>Soal akan tersedia dalam game</li>
+                    <li>Monitor penggunaan soal melalui statistik</li>
+                </ul>
+            </div>
+
+            <div class="guide-step" data-step="3">
+                <h4>Mengatur Akses Waktu</h4>
+                <p>Kontrol waktu akses game untuk murid:</p>
+                <ul>
+                    <li>Atur jam buka dan tutup akses game</li>
+                    <li>Tetapkan hari-hari aktif untuk setiap game</li>
+                    <li>Monitor penggunaan real-time murid</li>
+                    <li>Buat laporan penggunaan untuk analisis</li>
+                </ul>
+            </div>
+
+            <div class="tips-box">
+                <h4>💡 Tips untuk Guru</h4>
+                <p>
+                    • Monitor progres murid secara berkala<br>
+                    • Berikan feedback melalui fitur catatan<br>
+                    • Gunakan data untuk mengidentifikasi area yang perlu bantuan<br>
+                    • Motivasi murid dengan fitur reward dan badge<br>
+                    • Komunikasikan dengan orang tua melalui dashboard
+                </p>
+            </div>
+        </div>
+
+        <!-- Parent Guide -->
+        <div class="guide-section">
+            <h2>👨‍👩‍👧 Panduan untuk Orang Tua</h2>
+
+            <div class="guide-step" data-step="1">
+                <h4>Memantau Progres Anak</h4>
+                <p>Sebagai orang tua, Anda dapat:</p>
+                <ul>
+                    <li>Melihat statistik belajar anak setiap hari</li>
+                    <li>Memantau skor dan akurasi di setiap game</li>
+                    <li>Melihat badge dan reward yang dikumpulkan</li>
+                    <li>Membaca catatan dari guru tentang kemajuan anak</li>
+                    <li>Melihat grafik progres mingguan dan bulanan</li>
+                </ul>
+            </div>
+
+            <div class="guide-step" data-step="2">
+                <h4>Memahami Laporan Progres</h4>
+                <p>Interpretasi data progres anak:</p>
+                <ul>
+                    <li><strong>Skor Tinggi:</strong> Menunjukkan pemahaman yang baik</li>
+                    <li><strong>Akurasi Konsisten:</strong> Anak sudah menguasai topik</li>
+                    <li><strong>Peningkatan Bertahap:</strong> Menunjukkan pembelajaran yang efektif</li>
+                    <li><strong>Badge Baru:</strong> Pencapaian milestone yang penting</li>
+                </ul>
+            </div>
+
+            <div class="guide-step" data-step="3">
+                <h4>Mendukung Belajar Anak</h4>
+                <p>Cara mendukung proses pembelajaran:</p>
+                <ul>
+                    <li>Atur waktu belajar yang konsisten setiap hari</li>
+                    <li>Pantau progres dan berikan pujian untuk pencapaian</li>
+                    <li>Baca catatan guru dan tanyakan perkembangan</li>
+                    <li>Ciptakan lingkungan belajar yang nyaman</li>
+                    <li>Hindari tekanan berlebihan, fokus pada proses</li>
+                </ul>
+            </div>
+
+            <div class="tips-box">
+                <h4>💡 Tips Orang Tua</h4>
+                <p>
+                    • Periksa progres anak setiap hari atau minggu<br>
+                    • Komunikasikan dengan guru tentang pembelajaran anak<br>
+                    • Berikan dukungan emosional untuk motivasi<br>
+                    • Rayakan setiap pencapaian, sekecil apapun<br>
+                    • Tahu bahwa belajar adalah proses yang memerlukan waktu
+                </p>
+            </div>
+        </div>
+
+        <!-- General Tips -->
+        <div class="guide-section">
+            <h2>✨ Tips Umum untuk Pengalaman Terbaik</h2>
+
+            <div class="guide-step" data-step="1">
+                <h4>Persiapan Teknis</h4>
+                <p>Pastikan pengalaman bermain yang lancar dengan:</p>
+                <ul>
+                    <li>Menggunakan browser terbaru (Chrome, Firefox, Safari)</li>
+                    <li>Koneksi internet yang stabil</li>
+                    <li>Device dengan layar yang cukup besar (desktop/tablet lebih baik)</li>
+                    <li>Speaker atau headphone untuk audio pembelajaran</li>
+                    <li>Mengupdate aplikasi/browser ke versi terbaru</li>
+                </ul>
+            </div>
+
+            <div class="guide-step" data-step="2">
+                <h4>Manajemen Waktu Belajar</h4>
+                <p>Untuk hasil maksimal:</p>
+                <ul>
+                    <li>Belajar 15-30 menit per sesi (tergantung usia anak)</li>
+                    <li>Ambil istirahat setiap 15-20 menit</li>
+                    <li>Belajar di waktu yang sama setiap hari (rutinitas)</li>
+                    <li>Hindari belajar saat anak sedang lelah atau lapar</li>
+                    <li>Konsistensi lebih penting daripada durasi</li>
+                </ul>
+            </div>
+
+            <div class="guide-step" data-step="3">
+                <h4>Troubleshooting</h4>
+                <p>Jika mengalami masalah:</p>
+                <ul>
+                    <li><strong>Game tidak loading:</strong> Refresh browser atau clear cache</li>
+                    <li><strong>Audio tidak terdengar:</strong> Cek volume dan browser permissions</li>
+                    <li><strong>Skor tidak tercatat:</strong> Pastikan sudah submit sebelum keluar</li>
+                    <li><strong>Login error:</strong> Cek username/password atau reset password</li>
+                    <li><strong>Koneksi terputus:</strong> Hubungi admin atau coba ulang</li>
+                </ul>
+            </div>
+
+            <div class="tips-box">
+                <h4>💡 Kunci Kesuksesan Belajar</h4>
+                <p>
+                    1. 🎯 Tetap fokus pada tujuan pembelajaran<br>
+                    2. 📅 Konsisten dalam jadwal belajar<br>
+                    3. 🎉 Rayakan setiap pencapaian<br>
+                    4. 🔄 Ulang materi yang sulit<br>
+                    5. 🤝 Komunikasi dengan guru/orang tua<br>
+                    6. 😊 Nikmati proses belajar dengan menyenangkan
+                </p>
+            </div>
+        </div>
+
+        <!-- Contact Support -->
+        <div class="guide-section">
+            <h2>📞 Butuh Bantuan?</h2>
+            <p style="color: #666; margin-bottom: 20px;">
+                Jika Anda memiliki pertanyaan atau mengalami masalah dengan aplikasi, hubungi kami:
+            </p>
+            <div class="feature-list">
+                <div class="feature-item"><strong>Email:</strong> Hubungi sekolah untuk informasi email support</div>
+                <div class="feature-item"><strong>Guru:</strong> Konsultasikan masalah teknis dengan guru di sekolah</div>
+                <div class="feature-item"><strong>Admin:</strong> Hubungi admin aplikasi melalui halaman kontak</div>
+                <div class="feature-item"><strong>FAQ:</strong> Lihat halaman <a href="{{ url_for('main.contact') }}" class="footer-link">kontak</a> untuk informasi lebih lanjut</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+        <div class="footer-text">
+            <p>
+                Gamifikasi PAUD © 2024 | TK Diponegoro 95 Teluk<br>
+                <a href="{{ url_for('main.index') }}" class="footer-link">← Kembali ke Beranda</a> | 
+                <a href="{{ url_for('main.contact') }}" class="footer-link">Kontak</a>
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // Smooth scroll animation
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add scroll animation to cards
+            const cards = document.querySelectorAll('.feature-card, .guide-section');
+            
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.animation = 'fadeInUp 0.6s ease forwards';
+                    }
+                });
+            }, { threshold: 0.1 });
+            
+            cards.forEach(card => {
+                observer.observe(card);
+            });
+        });
+
+        // Back button animation
+        document.querySelector('.back-btn').addEventListener('click', function(e) {
+            e.preventDefault();
+            document.body.style.opacity = '0.8';
+            setTimeout(() => {
+                window.location.href = this.href;
+            }, 100);
+        });
+    </script>
+</body>
+</html>
